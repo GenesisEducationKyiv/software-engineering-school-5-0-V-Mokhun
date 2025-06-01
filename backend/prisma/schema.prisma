@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Frequency {
+  HOURLY @map("hourly")
+  DAILY  @map("daily")
+}
+
+model Subscription {
+  id        Int       @id @default(autoincrement())
+  email     String
+  city      String
+  frequency Frequency
+  confirmed Boolean   @default(false)
+
+  confirmToken          String?   @unique
+  confirmTokenExpiresAt DateTime? @map("confirm_token_expires_at")
+  unsubscribeToken      String    @unique
+
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  lastSentAt DateTime? @map("last_sent_at")
+
+  emailLogs EmailLog[]
+
+  @@unique([email, city])
+  @@map("subscriptions")
+}
+
+// Could have used Redis?
+model WeatherCache {
+  id          Int      @id @default(autoincrement())
+  city        String   @unique
+  temperature Float
+  humidity    Float
+  description String
+  fetchedAt   DateTime @default(now()) @map("fetched_at")
+
+  @@map("weather_cache")
+}
+
+model EmailLog {
+  id             Int      @id @default(autoincrement())
+  subscriptionId Int?     @map("subscription_id")
+  status         String
+  type           String
+  errorMessage   String?  @map("error_message")
+  sentAt         DateTime @default(now()) @map("sent_at")
+
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([subscriptionId])
+  @@map("email_logs")
+}
