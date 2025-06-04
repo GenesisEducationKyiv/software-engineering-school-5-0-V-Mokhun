@@ -54,8 +54,6 @@ export class WeatherService {
         description: data.current.condition.text,
       };
     } catch (error) {
-      console.error("Weather API error:", error);
-
       if (error instanceof HttpException) {
         throw error;
       }
