@@ -2,23 +2,22 @@ FROM node:22-bookworm AS base
 WORKDIR /app
 
 FROM base AS installer
-COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm
-RUN pnpm install
+COPY package.json package-lock.json ./
+RUN npm install
 
 FROM base AS builder
 COPY --from=installer /app/node_modules ./node_modules
 COPY . .
-RUN npm install -g pnpm
-RUN pnpm run db:generate
-RUN pnpm run build
+RUN npm install
+RUN npm run db:generate
+RUN npm run build
 
 FROM base AS migrator
 COPY --from=installer /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY package.json .
-RUN npm install -g pnpm
-RUN pnpm run db:generate
+RUN npm install
+RUN npm run db:generate
 
 FROM base AS runner
 RUN apt-get update && apt-get install -y netcat-traditional && rm -rf /var/lib/apt/lists/*
