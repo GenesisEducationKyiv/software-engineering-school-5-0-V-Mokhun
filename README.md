@@ -65,20 +65,20 @@ backend/
 
 ```bash
 # Build containers
-pnpm run docker:build:dev
+npm run docker:build:dev
 
 # Start services
-pnpm run docker:run:dev
+npm run docker:run:dev
 ```
 
 ### Production
 
 ```bash
 # Build containers
-pnpm run docker:build
+npm run docker:build
 
 # Start services
-pnpm run docker:run
+npm run docker:run
 ```
 
 ## Local Development
@@ -89,23 +89,23 @@ Run migrations without Docker:
 
 ```bash
 # Development environment
-pnpm run db:migrate-local:dev
+npm run db:migrate-local:dev
 
 # Production environment
-pnpm run db:migrate-local
+npm run db:migrate-local
 ```
 
 ### Starting the Application
 
 ```bash
 # Install dependencies
-pnpm install
+npm install
 
 # Generate Prisma client
-pnpm run db:generate
+npm run db:generate
 
 # Start development server
-pnpm run dev
+npm run dev
 ```
 
 ## Testing
@@ -114,9 +114,9 @@ The project includes both unit and integration tests. Run them with:
 
 ```bash
 # if you didn't run prisma generate, run it first
-pnpm run db:generate
+npm run db:generate
 ```
 
 ```bash
-pnpm run test
+npm run test
 ```
