@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Weather Subscription Service</title>
+		<link rel="stylesheet" href="styles.css">
+	</head>
+	<body>
+		<div class="container">
+			<header>
+				<h1>Weather Subscription Service</h1>
+				<p>Get weather updates for your favorite city!</p>
+			</header>
+
+			<main>
+				<div class="subscription-form">
+					<h2>Subscribe to Weather Updates</h2>
+					<form id="subscriptionForm">
+						<div class="form-group">
+							<label for="email">Email Address</label>
+							<input type="email" id="email" name="email" required placeholder="Enter your email">
+						</div>
+
+						<div class="form-group">
+							<label for="city">City</label>
+							<input type="text" id="city" name="city" required placeholder="Enter city name">
+						</div>
+
+						<div class="form-group">
+							<label for="frequency">Update Frequency</label>
+							<select id="frequency" name="frequency" required>
+								<option selected value="hourly">Hourly</option>
+								<option value="daily">Daily</option>
+							</select>
+						</div>
+
+						<button type="submit" class="submit-btn">Subscribe</button>
+					</form>
+				</div>
+
+				<div id="feedback" class="feedback hidden">
+					<div class="feedback-content">
+						<h3 id="feedbackTitle"></h3>
+						<p id="feedbackMessage"></p>
+					</div>
+				</div>
+			</main>
+		</div>
+		<script src="config.js"></script>
+		<script src="main.js"></script>
+	</body>
+</html>
