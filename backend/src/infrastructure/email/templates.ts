@@ -1,5 +1,5 @@
 import { env } from "@/config";
-import { WeatherData } from "../weather";
+import { WeatherData } from "@/shared/ports";
 
 export function confirmEmailTemplate(
   city: string,

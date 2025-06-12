@@ -1,14 +1,7 @@
-import {
-  WeatherData,
-  WeatherService as ExternalWeatherService,
-} from "@/infrastructure/weather";
 import { CACHE_THRESHOLD } from "@/constants";
 import { IWeatherService } from "./weather.controller";
 import { WeatherCache } from "@prisma/client";
-
-export interface IWeatherProvider {
-  getWeatherData(city: string): Promise<WeatherData>;
-}
+import { IWeatherProvider, WeatherData } from "@/shared/ports";
 
 export interface IWeatherRepository {
   findByCity(city: string): Promise<WeatherCache | null>;
@@ -18,7 +11,7 @@ export interface IWeatherRepository {
 export class WeatherService implements IWeatherService {
   constructor(
     private readonly repo: IWeatherRepository,
-    private readonly provider: IWeatherProvider = new ExternalWeatherService(),
+    private readonly provider: IWeatherProvider,
     private readonly threshold: number = CACHE_THRESHOLD
   ) {}
 
