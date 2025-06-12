@@ -1,111 +1,101 @@
-import { db } from "@/db";
+import { NextFunction, Response } from "express";
 import {
-  ConfirmEmailQueue,
   conflictResponse,
+  ConfirmEmailQueue,
   JOB_TYPES,
   notFoundResponse,
   weatherScheduler,
 } from "@/lib";
-import { NextFunction, Response } from "express";
 import {
   ConfirmSubscriptionRequest,
   SubscribeRequest,
   UnsubscribeRequest,
-} from "./subscription.route";
-import * as subscriptionService from "./subscription.service";
+} from "./subscription.types";
+import { SubscribeBody } from "./subscription.schema";
+import { Subscription } from "@prisma/client";
 
-export async function subscribe(
-  req: SubscribeRequest,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const { email, city } = req.body;
+export interface ISubscriptionService {
+  subscribe(data: SubscribeBody): Promise<{ confirmToken: string }>;
+  confirmSubscription(token: string): Promise<Subscription>;
+  unsubscribe(token: string): Promise<Subscription>;
+  isAlreadySubscribed(email: string, city: string): Promise<boolean>;
+}
 
-    const existingSubscription = await db.subscription.findFirst({
-      where: {
+export class SubscriptionController {
+  constructor(private readonly service: ISubscriptionService) {}
+
+  subscribe = async (
+    req: SubscribeRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { email, city } = req.body;
+
+      const existing = await this.service.isAlreadySubscribed(email, city);
+      if (existing) {
+        return conflictResponse(req, res, "Email already subscribed");
+      }
+
+      const { confirmToken } = await this.service.subscribe(req.body);
+
+      await ConfirmEmailQueue.add(JOB_TYPES.CONFIRM_EMAIL, {
         email,
         city,
-        confirmed: true,
-      },
-    });
+        confirmToken,
+      });
 
-    if (existingSubscription) {
-      return conflictResponse(req, res, "Email already subscribed");
+      res.status(200).json({
+        message: "Subscription successful. Confirmation email sent.",
+      });
+    } catch (error) {
+      next(error);
     }
+  };
 
-    const { confirmToken } = await subscriptionService.subscribe(req.body);
+  confirmSubscription = async (
+    req: ConfirmSubscriptionRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { token } = req.params;
 
-    await ConfirmEmailQueue.add(JOB_TYPES.CONFIRM_EMAIL, {
-      email,
-      city,
-      confirmToken,
-    });
+      let subscription;
+      try {
+        subscription = await this.service.confirmSubscription(token);
+      } catch (_) {
+        return notFoundResponse(req, res, "Invalid or expired token");
+      }
 
-    res.status(200).json({
-      message: "Subscription successful. Confirmation email sent.",
-    });
-  } catch (error) {
-    next(error);
-  }
-}
+      await weatherScheduler.scheduleSubscription(subscription.id);
 
-export async function confirmSubscription(
-  req: ConfirmSubscriptionRequest,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const { token } = req.params;
-
-    const subscription = await db.subscription.findFirst({
-      where: {
-        confirmToken: token,
-        confirmTokenExpiresAt: {
-          gt: new Date(),
-        },
-      },
-    });
-
-    if (
-      !subscription ||
-      !subscription.confirmTokenExpiresAt ||
-      subscription.confirmTokenExpiresAt < new Date()
-    ) {
-      return notFoundResponse(req, res, "Invalid or expired token");
+      res.status(200).json({ message: "Subscription confirmed successfully" });
+    } catch (error) {
+      next(error);
     }
+  };
 
-    await subscriptionService.confirmSubscription(subscription.id);
-    await weatherScheduler.scheduleSubscription(subscription.id);
+  unsubscribe = async (
+    req: UnsubscribeRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { token } = req.params;
 
-    res.status(200).json({ message: "Subscription confirmed successfully" });
-  } catch (error) {
-    next(error);
-  }
-}
+      let subscription;
+      try {
+        subscription = await this.service.unsubscribe(token);
+      } catch (_) {
+        return notFoundResponse(req, res, "Invalid token");
+      }
 
-export async function unsubscribe(
-  req: UnsubscribeRequest,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const { token } = req.params;
+      await weatherScheduler.removeSubscriptionSchedule(subscription.id);
 
-    const subscription = await db.subscription.findFirst({
-      where: { unsubscribeToken: token },
-    });
-
-    if (!subscription) {
-      return notFoundResponse(req, res, "Invalid token");
+      res.status(200).json({ message: "Unsubscribed successfully" });
+    } catch (error) {
+      next(error);
     }
-
-    await weatherScheduler.removeSubscriptionSchedule(subscription.id);
-
-    await subscriptionService.unsubscribe(subscription.id);
-
-    res.status(200).json({ message: "Unsubscribed successfully" });
-  } catch (error) {
-    next(error);
-  }
+  };
 }
