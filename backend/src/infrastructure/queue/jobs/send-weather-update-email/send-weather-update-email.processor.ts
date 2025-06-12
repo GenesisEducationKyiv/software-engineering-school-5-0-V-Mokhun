@@ -1,7 +1,7 @@
 import { Job } from "bullmq";
 import { JobProcessor } from "../../types";
 import { SendWeatherUpdateEmailJobData } from "./send-weather-update-email.config";
-import { sendEmail, weatherUpdateTemplate } from "@/lib/email";
+import { sendEmail, weatherUpdateTemplate } from "@/infrastructure/email";
 import { db } from "@/db";
 
 export class SendWeatherUpdateEmailProcessor implements JobProcessor {

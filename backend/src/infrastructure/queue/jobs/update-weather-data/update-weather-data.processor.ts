@@ -4,7 +4,7 @@ import { UpdateWeatherDataJobData } from "./update-weather-data.config";
 import {
   WeatherData,
   weatherService as weatherExternalService,
-} from "@/lib/weather";
+} from "@/infrastructure/weather";
 import { db } from "@/db";
 import { CACHE_THRESHOLD } from "@/constants";
 import { SendWeatherUpdateEmailQueue } from "../../queues";

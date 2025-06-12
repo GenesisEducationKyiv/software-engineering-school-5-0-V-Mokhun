@@ -1,5 +1,5 @@
 import { PrismaClient, WeatherCache } from "@prisma/client";
-import { WeatherData } from "@/lib/weather";
+import { WeatherData } from "@/infrastructure/weather";
 import { IWeatherRepository } from "./weather.service";
 
 export class WeatherRepository implements IWeatherRepository {

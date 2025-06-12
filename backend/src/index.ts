@@ -5,7 +5,7 @@ import {
   redisConnection,
   stopJobs,
   weatherScheduler,
-} from "./lib";
+} from "./infrastructure/queue";
 
 async function startServer() {
   try {

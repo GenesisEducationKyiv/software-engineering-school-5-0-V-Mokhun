@@ -3,7 +3,7 @@ import {
   HttpException,
   NotFoundException,
   ServerErrorException,
-} from "../error";
+} from "@/shared";
 
 export interface WeatherData {
   temperature: number;

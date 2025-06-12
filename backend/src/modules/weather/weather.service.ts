@@ -1,7 +1,7 @@
 import {
   WeatherData,
   WeatherService as ExternalWeatherService,
-} from "@/lib/weather";
+} from "@/infrastructure/weather";
 import { CACHE_THRESHOLD } from "@/constants";
 import { IWeatherService } from "./weather.controller";
 import { WeatherCache } from "@prisma/client";

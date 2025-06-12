@@ -1,18 +1,17 @@
-import { NextFunction, Response } from "express";
 import {
-  conflictResponse,
   ConfirmEmailQueue,
   JOB_TYPES,
-  notFoundResponse,
   weatherScheduler,
-} from "@/lib";
+} from "@/infrastructure/queue";
+import { ConflictException, NotFoundException } from "@/shared";
+import { Subscription } from "@prisma/client";
+import { NextFunction, Response } from "express";
+import { SubscribeBody } from "./subscription.schema";
 import {
   ConfirmSubscriptionRequest,
   SubscribeRequest,
   UnsubscribeRequest,
 } from "./subscription.types";
-import { SubscribeBody } from "./subscription.schema";
-import { Subscription } from "@prisma/client";
 
 export interface ISubscriptionService {
   subscribe(data: SubscribeBody): Promise<{ confirmToken: string }>;
@@ -34,7 +33,7 @@ export class SubscriptionController {
 
       const existing = await this.service.isAlreadySubscribed(email, city);
       if (existing) {
-        return conflictResponse(req, res, "Email already subscribed");
+        throw new ConflictException("Email already subscribed");
       }
 
       const { confirmToken } = await this.service.subscribe(req.body);
@@ -61,11 +60,9 @@ export class SubscriptionController {
     try {
       const { token } = req.params;
 
-      let subscription;
-      try {
-        subscription = await this.service.confirmSubscription(token);
-      } catch (_) {
-        return notFoundResponse(req, res, "Invalid or expired token");
+      const subscription = await this.service.confirmSubscription(token);
+      if (!subscription) {
+        throw new NotFoundException("Invalid or expired token");
       }
 
       await weatherScheduler.scheduleSubscription(subscription.id);
@@ -84,11 +81,9 @@ export class SubscriptionController {
     try {
       const { token } = req.params;
 
-      let subscription;
-      try {
-        subscription = await this.service.unsubscribe(token);
-      } catch (_) {
-        return notFoundResponse(req, res, "Invalid token");
+      const subscription = await this.service.unsubscribe(token);
+      if (!subscription) {
+        throw new NotFoundException("Invalid token");
       }
 
       await weatherScheduler.removeSubscriptionSchedule(subscription.id);

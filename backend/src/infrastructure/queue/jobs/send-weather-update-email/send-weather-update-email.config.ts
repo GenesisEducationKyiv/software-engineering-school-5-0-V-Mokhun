@@ -1,4 +1,4 @@
-import { WeatherData } from "@/lib/weather";
+import { WeatherData } from "@/infrastructure/weather";
 import { rootConfig } from "../../config";
 import { QUEUE_TYPES } from "../../constants";
 import { WorkerConfig } from "../../types";

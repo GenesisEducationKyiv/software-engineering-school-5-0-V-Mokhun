@@ -1,7 +1,7 @@
 import { Job } from "bullmq";
 import { JobProcessor } from "../../types";
 import { ConfirmEmailJobData } from "./confirm-email.config";
-import { confirmEmailTemplate, sendEmail } from "@/lib/email";
+import { confirmEmailTemplate, sendEmail } from "@/infrastructure/email";
 import { db } from "@/db";
 
 export class ConfirmEmailProcessor implements JobProcessor {

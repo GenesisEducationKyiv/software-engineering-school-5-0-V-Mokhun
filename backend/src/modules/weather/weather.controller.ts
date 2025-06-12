@@ -1,6 +1,6 @@
 import { NextFunction, Response } from "express";
 import { GetWeatherRequest } from "./weather.types";
-import { WeatherData } from "@/lib/weather";
+import { WeatherData } from "@/infrastructure/weather";
 
 export interface IWeatherService {
   getWeather(city: string): Promise<WeatherData>;
