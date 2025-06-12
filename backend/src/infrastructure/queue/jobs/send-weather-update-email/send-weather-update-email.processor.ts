@@ -1,10 +1,18 @@
 import { Job } from "bullmq";
 import { JobProcessor } from "../../types";
 import { SendWeatherUpdateEmailJobData } from "./send-weather-update-email.config";
-import { sendEmail, weatherUpdateTemplate } from "@/infrastructure/email";
+import { weatherUpdateTemplate } from "@/infrastructure/email";
 import { db } from "@/db";
+import { IEmailService } from "@/shared/ports/email.port";
+import { createEmailService } from "@/infrastructure/email/email.factory";
 
 export class SendWeatherUpdateEmailProcessor implements JobProcessor {
+  private readonly emailService: IEmailService;
+
+  constructor() {
+    this.emailService = createEmailService();
+  }
+
   async handle(job: Job<SendWeatherUpdateEmailJobData>) {
     const { email, city, unsubscribeToken, weatherData, subscriptionId } =
       job.data;
@@ -16,7 +24,8 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
       !subscriptionId ||
       !weatherData
     ) {
-      console.error("Invalid job data", job.data);
+      console.error("Invalid job data received", job.data);
+      // Acknowledge the job so it doesn't retry with bad data
       return;
     }
 
@@ -27,7 +36,11 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
         unsubscribeToken
       );
 
-      await sendEmail(email, `Weather Update for ${city}`, emailContent);
+      await this.emailService.send({
+        to: email,
+        subject: `Weather Update for ${city}`,
+        html: emailContent,
+      });
 
       await db.emailLog.create({
         data: {
