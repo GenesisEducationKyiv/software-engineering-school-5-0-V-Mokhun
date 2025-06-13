@@ -1,27 +1,27 @@
 import { app } from "./app";
 import { env } from "./config";
-import {
-  initializeJobs,
-  redisConnection,
-  stopJobs,
-  weatherScheduler,
-} from "./infrastructure/queue";
+import { redisConnection } from "./infrastructure/queue";
+import { JobManager } from "./infrastructure/queue/job-manager.service";
+import { workers } from "./infrastructure/queue/workers";
+import { getLogger } from "./shared/logger/logger.factory";
 
 async function startServer() {
+  const logger = getLogger();
+
   try {
     const server = app.listen(env.API_PORT, () => {
-      console.log(`Server is running on port ${env.API_PORT}`);
+      logger.info(`Server is running on port ${env.API_PORT}`);
     });
 
-    initializeJobs();
-    await weatherScheduler.initialize();
+    const jobManager = new JobManager(workers, logger);
+    jobManager.initializeWorkers();
 
     const shutdown = async () => {
       server.close(() => {
-        console.log("Server shutdown");
+        logger.info("Server shutdown");
       });
 
-      await stopJobs();
+      await jobManager.stopWorkers();
       await redisConnection.quit();
 
       process.exit(0);
@@ -30,7 +30,10 @@ async function startServer() {
     process.on("SIGTERM", shutdown);
     process.on("SIGINT", shutdown);
   } catch (error) {
-    console.error("Failed to start server", error);
+    logger.error(
+      "Failed to start server",
+      error instanceof Error ? error : new Error(JSON.stringify(error))
+    );
     process.exit(1);
   }
 }

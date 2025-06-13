@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { HttpException, ServerErrorException } from "@/shared";
+import { getLogger } from "@/shared/logger/logger.factory";
+import { env } from "@/config";
 
 function hasStatus(error: unknown): error is { status: number } {
   return Boolean(
@@ -20,14 +22,11 @@ function hasMessage(error: unknown): error is { message: string } {
 }
 
 function logError(request: Request, error: HttpException) {
-  console.error(
-    `Error: ${error.message}, Status: ${
-      error.status
-    }, Request: ${JSON.stringify({
-      method: request.method,
-      url: request.url,
-    })}, Stack: ${error.stack}`
-  );
+  getLogger().error(error.message, error, {
+    method: request.method,
+    url: request.url,
+    stack: env.NODE_ENV === "production" ? "🥞" : error.stack,
+  });
 }
 
 function formatErrorResponse(error: HttpException, response: Response) {

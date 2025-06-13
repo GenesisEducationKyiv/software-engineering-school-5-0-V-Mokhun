@@ -1,6 +1,5 @@
-export * from "./queues";
-export * from "./types";
-export * from "./lib";
 export * from "./constants";
+export * from "./types";
 export { redisConnection } from "./config";
-export * from "./schedulers";
+export * from "./queue.factory";
+export * from "./job-manager.service";

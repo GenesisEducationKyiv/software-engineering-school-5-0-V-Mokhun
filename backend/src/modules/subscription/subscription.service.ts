@@ -1,32 +1,22 @@
 import { SUBSCRIPTION_CONFIRMATION_EXPIRATION_TIME } from "@/constants";
-import { Frequency, Subscription } from "@prisma/client";
+import { Frequency } from "@prisma/client";
 import crypto from "crypto";
 import { FREQUENCY_MAP, SubscribeBody } from "./subscription.schema";
-import { SubscriptionCreate } from "./subscription.types";
 import { ISubscriptionService } from "./subscription.controller";
+import { IQueueService, ISubscriptionRepository } from "@/shared/ports";
+import { NotFoundException } from "@/shared";
+import { JOB_TYPES, QUEUE_TYPES } from "@/infrastructure/queue";
 
-export interface ISubscriptionRepository {
-  findConfirmedByEmailAndCity(
-    email: string,
-    city: string
-  ): Promise<Subscription | null>;
-
-  upsertSubscription(params: SubscriptionCreate): Promise<void>;
-
-  findValidByConfirmToken(
-    token: string,
-    now: Date
-  ): Promise<Subscription | null>;
-
-  confirmSubscription(id: number): Promise<void>;
-
-  findByUnsubscribeToken(token: string): Promise<Subscription | null>;
-
-  deleteSubscription(id: number): Promise<void>;
-}
+const FREQUENCY_TO_CRON: Record<Frequency, string> = {
+  [Frequency.HOURLY]: "0 * * * *",
+  [Frequency.DAILY]: "0 9 * * *",
+};
 
 export class SubscriptionService implements ISubscriptionService {
-  constructor(private readonly repo: ISubscriptionRepository) {}
+  constructor(
+    private readonly repo: ISubscriptionRepository,
+    private readonly queueService: IQueueService
+  ) {}
 
   async subscribe(data: SubscribeBody) {
     const { email, city, frequency } = data;
@@ -47,6 +37,12 @@ export class SubscriptionService implements ISubscriptionService {
       unsubscribeToken,
     });
 
+    await this.queueService.add(
+      QUEUE_TYPES.CONFIRM_EMAIL,
+      JOB_TYPES.CONFIRM_EMAIL,
+      { email, city, confirmToken }
+    );
+
     return { confirmToken, unsubscribeToken };
   }
 
@@ -54,18 +50,37 @@ export class SubscriptionService implements ISubscriptionService {
     const now = new Date();
     const subscription = await this.repo.findValidByConfirmToken(token, now);
     if (!subscription) {
-      throw new Error("Invalid or expired token");
+      throw new NotFoundException("Invalid or expired token");
     }
+
     await this.repo.confirmSubscription(subscription.id);
+
+    const cron = FREQUENCY_TO_CRON[subscription.frequency];
+    const schedulerId = `sub-${subscription.id}`;
+    await this.queueService.schedule(
+      QUEUE_TYPES.UPDATE_WEATHER_DATA,
+      schedulerId,
+      cron,
+      JOB_TYPES.UPDATE_WEATHER_DATA,
+      { subscriptionId: subscription.id }
+    );
+
     return subscription;
   }
 
   async unsubscribe(token: string) {
     const subscription = await this.repo.findByUnsubscribeToken(token);
     if (!subscription) {
-      throw new Error("Invalid token");
+      throw new NotFoundException("Invalid token");
     }
+
+    const schedulerId = `sub-${subscription.id}`;
+    await this.queueService.removeSchedule(
+      QUEUE_TYPES.UPDATE_WEATHER_DATA,
+      schedulerId
+    );
     await this.repo.deleteSubscription(subscription.id);
+
     return subscription;
   }
 

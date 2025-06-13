@@ -11,15 +11,14 @@ export type BaseConfig = {
 
 export type WorkerConfig = BaseConfig & {
   concurrency?: number;
-  useWorkerThreads?: boolean;
 };
 
 export type QueueConfig = BaseConfig & {
   defaultJobOptions?: DefaultJobOptions;
 };
 
-export type JobProcessor = {
-  handle: (job: Job) => Promise<any>;
-  completed: (job: Job) => void;
-  failed: (job: Job | undefined, error: Error) => void;
+export type JobProcessor<T = any> = {
+  handle: (job: Job<T>) => Promise<any>;
+  completed: (job: Job<T>) => void;
+  failed: (job: Job<T> | undefined, error: Error) => void;
 };

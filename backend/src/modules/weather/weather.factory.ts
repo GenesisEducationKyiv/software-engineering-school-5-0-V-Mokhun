@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { WeatherRepository } from "./weather.repository";
+import { WeatherRepository } from "../../infrastructure/repositories/weather.repository";
 import { WeatherService } from "./weather.service";
 import { WeatherController } from "./weather.controller";
 import { createWeatherProvider } from "@/infrastructure/weather";

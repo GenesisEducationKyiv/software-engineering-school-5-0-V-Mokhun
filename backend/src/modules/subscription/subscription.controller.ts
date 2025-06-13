@@ -1,9 +1,4 @@
-import {
-  ConfirmEmailQueue,
-  JOB_TYPES,
-  weatherScheduler,
-} from "@/infrastructure/queue";
-import { ConflictException, NotFoundException } from "@/shared";
+import { ConflictException } from "@/shared";
 import { Subscription } from "@prisma/client";
 import { NextFunction, Response } from "express";
 import { SubscribeBody } from "./subscription.schema";
@@ -36,13 +31,7 @@ export class SubscriptionController {
         throw new ConflictException("Email already subscribed");
       }
 
-      const { confirmToken } = await this.service.subscribe(req.body);
-
-      await ConfirmEmailQueue.add(JOB_TYPES.CONFIRM_EMAIL, {
-        email,
-        city,
-        confirmToken,
-      });
+      await this.service.subscribe(req.body);
 
       res.status(200).json({
         message: "Subscription successful. Confirmation email sent.",
@@ -59,14 +48,7 @@ export class SubscriptionController {
   ) => {
     try {
       const { token } = req.params;
-
-      const subscription = await this.service.confirmSubscription(token);
-      if (!subscription) {
-        throw new NotFoundException("Invalid or expired token");
-      }
-
-      await weatherScheduler.scheduleSubscription(subscription.id);
-
+      await this.service.confirmSubscription(token);
       res.status(200).json({ message: "Subscription confirmed successfully" });
     } catch (error) {
       next(error);
@@ -80,14 +62,7 @@ export class SubscriptionController {
   ) => {
     try {
       const { token } = req.params;
-
-      const subscription = await this.service.unsubscribe(token);
-      if (!subscription) {
-        throw new NotFoundException("Invalid token");
-      }
-
-      await weatherScheduler.removeSubscriptionSchedule(subscription.id);
-
+      await this.service.unsubscribe(token);
       res.status(200).json({ message: "Unsubscribed successfully" });
     } catch (error) {
       next(error);

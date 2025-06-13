@@ -1,6 +1,5 @@
 import { PrismaClient, WeatherCache } from "@prisma/client";
-import { IWeatherRepository } from "./weather.service";
-import { WeatherData } from "@/shared/ports";
+import { IWeatherRepository, WeatherData } from "@/shared/ports";
 
 export class WeatherRepository implements IWeatherRepository {
   constructor(private readonly prisma: PrismaClient) {}

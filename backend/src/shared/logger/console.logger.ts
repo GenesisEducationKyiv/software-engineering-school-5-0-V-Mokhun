@@ -1,4 +1,4 @@
-import { ILogger } from "./logger.interface";
+import { ILogger } from './logger.interface';
 
 export class ConsoleLogger implements ILogger {
   private log(level: string, message: string, meta?: Record<string, any>) {

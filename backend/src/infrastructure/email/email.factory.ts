@@ -1,6 +1,6 @@
 import { env } from "@/config";
 import { getLogger } from "@/shared/logger";
-import { IEmailService } from "@/shared/ports/email.port";
+import { IEmailService } from "@/shared/ports";
 import { SendgridEmailService } from "./sendgrid.email.service";
 
 export function createEmailService(): IEmailService {

@@ -1,12 +1,10 @@
 import { CACHE_THRESHOLD } from "@/constants";
 import { IWeatherService } from "./weather.controller";
-import { WeatherCache } from "@prisma/client";
-import { IWeatherProvider, WeatherData } from "@/shared/ports";
-
-export interface IWeatherRepository {
-  findByCity(city: string): Promise<WeatherCache | null>;
-  upsert(city: string, data: WeatherData): Promise<void>;
-}
+import {
+  IWeatherProvider,
+  IWeatherRepository,
+  WeatherData,
+} from "@/shared/ports";
 
 export class WeatherService implements IWeatherService {
   constructor(
