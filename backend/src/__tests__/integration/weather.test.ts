@@ -101,27 +101,25 @@ describe("Weather Endpoints", () => {
     //   );
     // });
 
-    // it("should return 400 for missing city parameter", async () => {
-    //   const response = await request(app).get("/api/weather").query({});
+    it("should return 400 for missing city parameter", async () => {
+      const response = await request(app).get("/api/weather").query({});
 
-    //   expect(response.status).toBe(StatusCodes.BAD_REQUEST);
-    //   expect(response.body).toHaveProperty("errors");
-    //   expect(response.body).toHaveProperty("message");
-    // });
+      expect(response.status).toBe(StatusCodes.BAD_REQUEST);
+      expect(response.body).toHaveProperty("errors");
+      expect(response.body).toHaveProperty("message");
+    });
 
-    // it("should handle external service errors", async () => {
-    //   const query: GetWeatherQuery = { city: "London" };
+    it("should handle external service errors", async () => {
+      const query: GetWeatherQuery = { city: "London" };
 
-    //   jest.mocked(prisma.weatherCache.findUnique).mockResolvedValue(null);
-    //   jest
-    //     .mocked(weatherExternalService.getWeatherData)
-    //     .mockRejectedValue(new Error("Failed to fetch weather data"));
+      // jest
+      //   .mocked(weatherExternalService.getWeatherData)
+      //   .mockRejectedValue(new Error("Failed to fetch weather data"));
 
-    //   const response = await request(app).get("/api/weather").query(query);
+      const response = await request(app).get("/api/weather").query(query);
 
-    //   expect(response.status).toBe(HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR);
-    //   expect(response.body).toHaveProperty("message");
-    //   expect(weatherService.upsertWeatherCache).not.toHaveBeenCalled();
-    // });
+      expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.body).toHaveProperty("message");
+    });
   });
 });

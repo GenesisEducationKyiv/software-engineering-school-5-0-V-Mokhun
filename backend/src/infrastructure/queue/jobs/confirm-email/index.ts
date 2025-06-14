@@ -1,5 +1,4 @@
 import { createWorker } from "../worker-factory";
-import { rootConfig } from "../../config";
 import { QUEUE_TYPES, JOB_TYPES } from "../../constants";
 import { ConfirmEmailProcessor } from "./processor";
 import { WorkerConfig } from "../../types";
@@ -9,9 +8,10 @@ import { EmailLogRepository } from "@/infrastructure/repositories/email-log.repo
 import { SubscriptionRepository } from "@/infrastructure/repositories/subscription.repository";
 import { getLogger } from "@/shared/logger/logger.factory";
 import { env } from "@/config";
+import { createRootConfig } from "../../config";
 
 const config: WorkerConfig = {
-  ...rootConfig,
+  ...createRootConfig(),
   queueName: QUEUE_TYPES.CONFIRM_EMAIL,
   concurrency: 1,
 };

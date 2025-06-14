@@ -27,8 +27,10 @@ echo "--- Starting test containers ---"
 docker compose -f "$COMPOSE_FILE" up -d
 
 echo "--- Waiting for database to be ready ---"
-
 ./scripts/wait-until.sh "docker compose -f ${COMPOSE_FILE} exec -T db-test psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c 'select 1' > /dev/null 2>&1"
+
+echo "--- Waiting for redis to be ready ---"
+./scripts/wait-until.sh "docker compose -f ${COMPOSE_FILE} exec -T redis-test redis-cli ping > /dev/null 2>&1"
 
 echo "--- Running integration tests ---"
 npm run test:integration
