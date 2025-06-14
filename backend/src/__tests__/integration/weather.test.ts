@@ -1,25 +1,10 @@
-import { prisma } from "@/__mocks__/@prisma/client";
 import { app } from "@/app";
-import { CACHE_THRESHOLD, HTTP_STATUS_CODE } from "@/constants";
-import {
-  WeatherData,
-  weatherService as weatherExternalService,
-} from "@/lib/weather";
+import { CACHE_THRESHOLD } from "@/constants";
 import { GetWeatherQuery } from "@/modules/weather/weather.schema";
-import * as weatherService from "@/modules/weather/weather.service";
+import { WeatherData } from "@/shared/ports";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { WeatherCache } from "@prisma/client";
 import request from "supertest";
-
-jest.mock("@/modules/weather/weather.service", () => ({
-  upsertWeatherCache: jest.fn(),
-}));
-
-jest.mock("@/lib/weather", () => ({
-  weatherService: {
-    getWeatherData: jest.fn(),
-  },
-}));
 
 describe("Weather Endpoints", () => {
   const mockWeatherData: WeatherData = {

@@ -1,12 +1,7 @@
-//? Tests pass successfully, relative imports work but vscode doesnt pick up the types. Tried to fix but no luck. Decided to leave as is because it took too long ;)
-import { prisma } from "@/__mocks__/@prisma/client";
 import { app } from "@/app";
-import { HTTP_STATUS_CODE } from "@/constants";
-import { ConfirmEmailQueue, JOB_TYPES, weatherScheduler } from "@/lib";
-import { SubscribeBody } from "@/modules/subscription/subscription.schema";
-import * as subscriptionService from "@/modules/subscription/subscription.service";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Subscription } from "@prisma/client";
+import { SubscribeBody } from "@/modules/subscription/subscription.schema";
 import request from "supertest";
 
 jest.mock("@/modules/subscription/subscription.service", () => ({
