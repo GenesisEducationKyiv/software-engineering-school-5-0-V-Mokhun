@@ -21,7 +21,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
         frequency: params.frequency,
         confirmToken: params.confirmToken,
         confirmTokenExpiresAt: params.confirmTokenExpiresAt,
-        confirmed: false, // Reset confirmation on re-subscribing
+        confirmed: false,
       },
       create: params,
     });

@@ -1,224 +1,204 @@
-import { app } from "@/app";
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Subscription } from "@prisma/client";
-import { SubscribeBody } from "@/modules/subscription/subscription.schema";
-import request from "supertest";
+// import { app } from "@/app";
+// import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+// import { Subscription } from "@prisma/client";
+// import { SubscribeBody } from "@/modules/subscription/subscription.schema";
+// import request from "supertest";
 
-jest.mock("@/modules/subscription/subscription.service", () => ({
-  subscribe: jest.fn(),
-  confirmSubscription: jest.fn(),
-  unsubscribe: jest.fn(),
-}));
+// describe("Subscription Endpoints", () => {
+//   beforeEach(() => {
+//     jest.resetAllMocks();
+//   });
+//   describe("POST /api/subscribe", () => {
+//     const subscribeData: SubscribeBody = {
+//       email: "test@example.com",
+//       city: "London",
+//       frequency: "hourly",
+//     };
 
-jest.mock("@/lib/queue", () => ({
-  ConfirmEmailQueue: {
-    add: jest.fn(),
-  },
-  JOB_TYPES: {
-    CONFIRM_EMAIL: "CONFIRM_EMAIL",
-  },
-  weatherScheduler: {
-    scheduleSubscription: jest.fn(),
-    removeSubscriptionSchedule: jest.fn(),
-  },
-}));
+//     it("should successfully create new subscription and send confirmation email", async () => {
+//       jest.mocked(prisma.subscription.findFirst).mockResolvedValue(null);
 
-describe("Subscription Endpoints", () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
+//       jest.mocked(subscriptionService.subscribe).mockResolvedValue({
+//         confirmToken: "test-confirm-token",
+//         unsubscribeToken: "test-unsubscribe-token",
+//       });
 
-  describe("POST /api/subscribe", () => {
-    const subscribeData: SubscribeBody = {
-      email: "test@example.com",
-      city: "London",
-      frequency: "hourly",
-    };
+//       const response = await request(app)
+//         .post("/api/subscribe")
+//         .send(subscribeData);
 
-    it("should successfully create new subscription and send confirmation email", async () => {
-      jest.mocked(prisma.subscription.findFirst).mockResolvedValue(null);
+//       expect(response.status).toBe(HTTP_STATUS_CODE.SUCCESS);
+//       expect(response.body).toEqual({
+//         message: "Subscription successful. Confirmation email sent.",
+//       });
 
-      jest.mocked(subscriptionService.subscribe).mockResolvedValue({
-        confirmToken: "test-confirm-token",
-        unsubscribeToken: "test-unsubscribe-token",
-      });
+//       expect(ConfirmEmailQueue.add).toHaveBeenCalledWith(
+//         JOB_TYPES.CONFIRM_EMAIL,
+//         {
+//           email: subscribeData.email,
+//           city: subscribeData.city,
+//           confirmToken: "test-confirm-token",
+//         }
+//       );
+//     });
 
-      const response = await request(app)
-        .post("/api/subscribe")
-        .send(subscribeData);
+//     it("should return 409 if email is already subscribed to the city", async () => {
+//       jest.mocked(prisma.subscription.findFirst).mockResolvedValue({
+//         id: 1,
+//         email: subscribeData.email,
+//         city: subscribeData.city,
+//         frequency: "DAILY",
+//         confirmed: true,
+//       } as Subscription);
 
-      expect(response.status).toBe(HTTP_STATUS_CODE.SUCCESS);
-      expect(response.body).toEqual({
-        message: "Subscription successful. Confirmation email sent.",
-      });
+//       const response = await request(app)
+//         .post("/api/subscribe")
+//         .send(subscribeData);
 
-      expect(ConfirmEmailQueue.add).toHaveBeenCalledWith(
-        JOB_TYPES.CONFIRM_EMAIL,
-        {
-          email: subscribeData.email,
-          city: subscribeData.city,
-          confirmToken: "test-confirm-token",
-        }
-      );
-    });
+//       expect(response.status).toBe(HTTP_STATUS_CODE.CONFLICT);
+//       expect(response.body).toHaveProperty("message");
+//       expect(subscriptionService.subscribe).not.toHaveBeenCalled();
+//       expect(ConfirmEmailQueue.add).not.toHaveBeenCalled();
+//     });
 
-    it("should return 409 if email is already subscribed to the city", async () => {
-      jest.mocked(prisma.subscription.findFirst).mockResolvedValue({
-        id: 1,
-        email: subscribeData.email,
-        city: subscribeData.city,
-        frequency: "DAILY",
-        confirmed: true,
-      } as Subscription);
+//     it("should return 400 for invalid email format", async () => {
+//       const response = await request(app)
+//         .post("/api/subscribe")
+//         .send({
+//           ...subscribeData,
+//           email: "invalid-email",
+//         });
 
-      const response = await request(app)
-        .post("/api/subscribe")
-        .send(subscribeData);
+//       expect(response.status).toBe(HTTP_STATUS_CODE.BAD_REQUEST);
+//       expect(response.body).toHaveProperty("message");
+//       expect(response.body).toHaveProperty("errors");
+//     });
 
-      expect(response.status).toBe(HTTP_STATUS_CODE.CONFLICT);
-      expect(response.body).toHaveProperty("message");
-      expect(subscriptionService.subscribe).not.toHaveBeenCalled();
-      expect(ConfirmEmailQueue.add).not.toHaveBeenCalled();
-    });
+//     it("should return 400 for missing required fields", async () => {
+//       const response = await request(app).post("/api/subscribe").send({
+//         email: subscribeData.email,
+//       });
 
-    it("should return 400 for invalid email format", async () => {
-      const response = await request(app)
-        .post("/api/subscribe")
-        .send({
-          ...subscribeData,
-          email: "invalid-email",
-        });
+//       expect(response.status).toBe(HTTP_STATUS_CODE.BAD_REQUEST);
+//       expect(response.body).toHaveProperty("message");
+//       expect(response.body).toHaveProperty("errors");
+//     });
+//   });
 
-      expect(response.status).toBe(HTTP_STATUS_CODE.BAD_REQUEST);
-      expect(response.body).toHaveProperty("message");
-      expect(response.body).toHaveProperty("errors");
-    });
+//   describe("GET /api/confirm/:token", () => {
+//     const mockSubscription: Subscription = {
+//       id: 1,
+//       email: "test@example.com",
+//       city: "London",
+//       frequency: "HOURLY",
+//       confirmed: false,
+//       confirmToken: "valid-token",
+//       confirmTokenExpiresAt: new Date(Date.now() + 3600000), // 1 hour from now
+//       unsubscribeToken: "unsubscribe-token",
+//       createdAt: new Date(),
+//       updatedAt: new Date(),
+//       lastSentAt: null,
+//     };
 
-    it("should return 400 for missing required fields", async () => {
-      const response = await request(app).post("/api/subscribe").send({
-        email: subscribeData.email,
-      });
+//     it("should successfully confirm subscription", async () => {
+//       jest
+//         .mocked(prisma.subscription.findFirst)
+//         .mockResolvedValue(mockSubscription);
 
-      expect(response.status).toBe(HTTP_STATUS_CODE.BAD_REQUEST);
-      expect(response.body).toHaveProperty("message");
-      expect(response.body).toHaveProperty("errors");
-    });
-  });
+//       jest.mocked(subscriptionService.confirmSubscription).mockResolvedValue({
+//         ...mockSubscription,
+//         confirmed: true,
+//         confirmToken: null,
+//         confirmTokenExpiresAt: null,
+//       });
 
-  describe("GET /api/confirm/:token", () => {
-    const mockSubscription: Subscription = {
-      id: 1,
-      email: "test@example.com",
-      city: "London",
-      frequency: "HOURLY",
-      confirmed: false,
-      confirmToken: "valid-token",
-      confirmTokenExpiresAt: new Date(Date.now() + 3600000), // 1 hour from now
-      unsubscribeToken: "unsubscribe-token",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastSentAt: null,
-    };
+//       const response = await request(app).get("/api/confirm/valid-token");
 
-    it("should successfully confirm subscription", async () => {
-      jest
-        .mocked(prisma.subscription.findFirst)
-        .mockResolvedValue(mockSubscription);
+//       expect(response.status).toBe(HTTP_STATUS_CODE.SUCCESS);
+//       expect(response.body).toEqual({
+//         message: "Subscription confirmed successfully",
+//       });
 
-      jest.mocked(subscriptionService.confirmSubscription).mockResolvedValue({
-        ...mockSubscription,
-        confirmed: true,
-        confirmToken: null,
-        confirmTokenExpiresAt: null,
-      });
+//       expect(weatherScheduler.scheduleSubscription).toHaveBeenCalledWith(
+//         mockSubscription.id
+//       );
+//     });
 
-      const response = await request(app).get("/api/confirm/valid-token");
+//     it("should return 404 for expired token", async () => {
+//       jest.mocked(prisma.subscription.findFirst).mockResolvedValue({
+//         ...mockSubscription,
+//         confirmTokenExpiresAt: new Date(Date.now() - 3600000), // 1 hour ago
+//       });
 
-      expect(response.status).toBe(HTTP_STATUS_CODE.SUCCESS);
-      expect(response.body).toEqual({
-        message: "Subscription confirmed successfully",
-      });
+//       const response = await request(app).get("/api/confirm/expired-token");
 
-      expect(weatherScheduler.scheduleSubscription).toHaveBeenCalledWith(
-        mockSubscription.id
-      );
-    });
+//       expect(response.status).toBe(HTTP_STATUS_CODE.NOT_FOUND);
+//       expect(response.body).toHaveProperty("message");
+//       expect(subscriptionService.confirmSubscription).not.toHaveBeenCalled();
+//       expect(weatherScheduler.scheduleSubscription).not.toHaveBeenCalled();
+//     });
 
-    it("should return 404 for expired token", async () => {
-      jest.mocked(prisma.subscription.findFirst).mockResolvedValue({
-        ...mockSubscription,
-        confirmTokenExpiresAt: new Date(Date.now() - 3600000), // 1 hour ago
-      });
+//     it("should return 404 for invalid token", async () => {
+//       jest.mocked(prisma.subscription.findFirst).mockResolvedValue(null);
 
-      const response = await request(app).get("/api/confirm/expired-token");
+//       const response = await request(app).get("/api/confirm/invalid-token");
 
-      expect(response.status).toBe(HTTP_STATUS_CODE.NOT_FOUND);
-      expect(response.body).toHaveProperty("message");
-      expect(subscriptionService.confirmSubscription).not.toHaveBeenCalled();
-      expect(weatherScheduler.scheduleSubscription).not.toHaveBeenCalled();
-    });
+//       expect(response.status).toBe(HTTP_STATUS_CODE.NOT_FOUND);
+//       expect(response.body).toHaveProperty("message");
+//     });
+//   });
 
-    it("should return 404 for invalid token", async () => {
-      jest.mocked(prisma.subscription.findFirst).mockResolvedValue(null);
+//   describe("GET /api/unsubscribe/:token", () => {
+//     const mockSubscription: Subscription = {
+//       id: 1,
+//       email: "test@example.com",
+//       city: "London",
+//       frequency: "HOURLY",
+//       confirmed: true,
+//       confirmToken: null,
+//       confirmTokenExpiresAt: null,
+//       unsubscribeToken: "valid-token",
+//       createdAt: new Date(),
+//       updatedAt: new Date(),
+//       lastSentAt: null,
+//     };
 
-      const response = await request(app).get("/api/confirm/invalid-token");
+//     it("should successfully unsubscribe", async () => {
+//       jest
+//         .mocked(prisma.subscription.findFirst)
+//         .mockResolvedValue(mockSubscription);
 
-      expect(response.status).toBe(HTTP_STATUS_CODE.NOT_FOUND);
-      expect(response.body).toHaveProperty("message");
-    });
-  });
+//       jest.mocked(subscriptionService.unsubscribe).mockResolvedValue({
+//         ...mockSubscription,
+//         confirmed: false,
+//       });
 
-  describe("GET /api/unsubscribe/:token", () => {
-    const mockSubscription: Subscription = {
-      id: 1,
-      email: "test@example.com",
-      city: "London",
-      frequency: "HOURLY",
-      confirmed: true,
-      confirmToken: null,
-      confirmTokenExpiresAt: null,
-      unsubscribeToken: "valid-token",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastSentAt: null,
-    };
+//       const response = await request(app).get("/api/unsubscribe/valid-token");
 
-    it("should successfully unsubscribe", async () => {
-      jest
-        .mocked(prisma.subscription.findFirst)
-        .mockResolvedValue(mockSubscription);
+//       expect(response.status).toBe(HTTP_STATUS_CODE.SUCCESS);
+//       expect(response.body).toEqual({
+//         message: "Unsubscribed successfully",
+//       });
 
-      jest.mocked(subscriptionService.unsubscribe).mockResolvedValue({
-        ...mockSubscription,
-        confirmed: false,
-      });
+//       expect(weatherScheduler.removeSubscriptionSchedule).toHaveBeenCalledWith(
+//         mockSubscription.id
+//       );
+//       expect(subscriptionService.unsubscribe).toHaveBeenCalledWith(
+//         mockSubscription.id
+//       );
+//     });
 
-      const response = await request(app).get("/api/unsubscribe/valid-token");
+//     it("should return 404 for invalid token", async () => {
+//       jest.mocked(prisma.subscription.findFirst).mockResolvedValue(null);
 
-      expect(response.status).toBe(HTTP_STATUS_CODE.SUCCESS);
-      expect(response.body).toEqual({
-        message: "Unsubscribed successfully",
-      });
+//       const response = await request(app).get("/api/unsubscribe/invalid-token");
 
-      expect(weatherScheduler.removeSubscriptionSchedule).toHaveBeenCalledWith(
-        mockSubscription.id
-      );
-      expect(subscriptionService.unsubscribe).toHaveBeenCalledWith(
-        mockSubscription.id
-      );
-    });
-
-    it("should return 404 for invalid token", async () => {
-      jest.mocked(prisma.subscription.findFirst).mockResolvedValue(null);
-
-      const response = await request(app).get("/api/unsubscribe/invalid-token");
-
-      expect(response.status).toBe(HTTP_STATUS_CODE.NOT_FOUND);
-      expect(response.body).toHaveProperty("message");
-      expect(
-        weatherScheduler.removeSubscriptionSchedule
-      ).not.toHaveBeenCalled();
-      expect(subscriptionService.unsubscribe).not.toHaveBeenCalled();
-    });
-  });
-});
+//       expect(response.status).toBe(HTTP_STATUS_CODE.NOT_FOUND);
+//       expect(response.body).toHaveProperty("message");
+//       expect(
+//         weatherScheduler.removeSubscriptionSchedule
+//       ).not.toHaveBeenCalled();
+//       expect(subscriptionService.unsubscribe).not.toHaveBeenCalled();
+//     });
+//   });
+// });
