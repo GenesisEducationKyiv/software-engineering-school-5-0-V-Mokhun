@@ -11,10 +11,15 @@ import {
   SubscribeRequest,
   UnsubscribeRequest,
 } from "./subscription.types";
+import { getLogger } from "@/shared/logger";
+import { getDb } from "@/db";
 
 const router = Router();
 
-const controller = createSubscriptionController();
+const controller = createSubscriptionController({
+  logger: getLogger(),
+  db: getDb(),
+});
 
 router.get(
   "/confirm/:token",

@@ -1,17 +1,20 @@
-import { env } from "@/config";
-import { getLogger } from "@/shared/logger";
+import { ILogger } from "@/shared/logger";
 import { IEmailService } from "@/shared/ports";
 import { SendgridEmailService } from "./sendgrid.email.service";
 
-export function createEmailService(): IEmailService {
-  const logger = getLogger();
-  const apiKey = env.SENDGRID_API_KEY;
-  const fromEmail = env.SENDGRID_FROM_EMAIL;
-
+export function createEmailService({
+  logger,
+  apiKey,
+  fromEmail,
+}: {
+  logger: ILogger;
+  apiKey: string;
+  fromEmail: string;
+}): IEmailService {
   if (!apiKey || !fromEmail) {
     logger.error(
-      "Email service cannot be created. SENDGRID_API_KEY or SENDGRID_FROM_EMAIL is not set.",
-      new Error("Missing SendGrid environment variables")
+      "Email service cannot be created. apiKey or fromEmail is not set.",
+      new Error("Missing EmailService configuration")
     );
 
     throw new Error("Cannot create EmailService due to missing configuration.");

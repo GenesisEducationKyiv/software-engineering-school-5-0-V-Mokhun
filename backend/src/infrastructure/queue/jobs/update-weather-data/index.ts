@@ -8,16 +8,21 @@ import { SubscriptionRepository } from "@/infrastructure/repositories/subscripti
 import { db } from "@/db";
 import { createWeatherProvider } from "@/infrastructure/weather/weather.factory";
 import { getLogger } from "@/shared/logger/logger.factory";
+import { env } from "@/config";
 
 const config: WorkerConfig = {
   ...rootConfig,
   queueName: QUEUE_TYPES.UPDATE_WEATHER_DATA,
 };
 
-const queueService = createQueueService();
-const subscriptionRepo = new SubscriptionRepository(db);
-const weatherProvider = createWeatherProvider();
 const logger = getLogger();
+
+const queueService = createQueueService({ logger });
+const subscriptionRepo = new SubscriptionRepository(db);
+const weatherProvider = createWeatherProvider({
+  logger,
+  apiKey: env.WEATHER_API_KEY,
+});
 
 const processor = new UpdateWeatherDataProcessor(
   queueService,

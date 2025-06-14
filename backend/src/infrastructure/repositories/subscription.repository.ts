@@ -1,8 +1,9 @@
-import { PrismaClient, Subscription } from "@prisma/client";
 import { ISubscriptionRepository, SubscriptionCreate } from "@/shared/ports";
+import { IDatabase } from "@/shared/ports/database.port";
+import { Subscription } from "@prisma/client";
 
 export class SubscriptionRepository implements ISubscriptionRepository {
-  constructor(private readonly db: PrismaClient) {}
+  constructor(private readonly db: IDatabase) {}
 
   async findConfirmedByEmailAndCity(
     email: string,

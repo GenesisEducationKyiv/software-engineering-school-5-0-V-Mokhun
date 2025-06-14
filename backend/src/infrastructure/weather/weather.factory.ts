@@ -1,15 +1,17 @@
-import { env } from "@/config";
-import { getLogger } from "@/shared/logger";
+import { ILogger } from "@/shared/logger";
 import { IWeatherProvider } from "@/shared/ports";
 import { WeatherApiProvider } from "./weatherapi.service";
 
-export function createWeatherProvider(): IWeatherProvider {
-  const logger = getLogger();
-  const apiKey = env.WEATHER_API_KEY;
-
+export function createWeatherProvider({
+  logger,
+  apiKey,
+}: {
+  logger: ILogger;
+  apiKey: string;
+}): IWeatherProvider {
   if (!apiKey) {
     logger.error(
-      "Weather provider cannot be created. WEATHER_API_KEY is not set.",
+      "Weather provider cannot be created. apiKey is not set.",
       new Error("Missing Weather API Key")
     );
     throw new Error(

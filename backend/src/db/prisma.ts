@@ -1,3 +1,4 @@
+import { IDatabase } from "@/shared/ports";
 import { env } from "../config";
 import { PrismaClient } from "@prisma/client";
 
@@ -7,16 +8,16 @@ function createPrismaClient() {
   });
 }
 
-let dbInstance: PrismaClient | undefined;
+let dbInstance: IDatabase | undefined;
 
-export function getDb(): PrismaClient {
+export function getDb(): IDatabase {
   if (!dbInstance) {
     dbInstance = createPrismaClient();
   }
   return dbInstance;
 }
 
-export function overrideDb(client: PrismaClient) {
+export function overrideDb(client: IDatabase) {
   if (dbInstance) {
     dbInstance.$disconnect().catch(() => {});
   }

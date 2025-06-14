@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { EmailLogRepository } from "@/infrastructure/repositories/email-log.repository";
 import { SubscriptionRepository } from "@/infrastructure/repositories/subscription.repository";
 import { getLogger } from "@/shared/logger/logger.factory";
+import { env } from "@/config";
 
 const config: WorkerConfig = {
   ...rootConfig,
@@ -15,10 +16,14 @@ const config: WorkerConfig = {
   concurrency: 1,
 };
 
-const emailService = createEmailService();
+const logger = getLogger();
+const emailService = createEmailService({
+  logger,
+  apiKey: env.SENDGRID_API_KEY,
+  fromEmail: env.SENDGRID_FROM_EMAIL,
+});
 const subscriptionRepo = new SubscriptionRepository(db);
 const emailLogRepo = new EmailLogRepository(db);
-const logger = getLogger();
 
 const processor = new ConfirmEmailProcessor(
   emailService,
