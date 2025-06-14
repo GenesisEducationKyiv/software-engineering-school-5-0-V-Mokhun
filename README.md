@@ -26,24 +26,32 @@ backend/
 │   ├── __mocks__/       # Mock files
 │   ├── __tests__/        # Unit and integration tests
 │   ├── config/           # Environment and configuration setup
-│   ├── constants/       # Constants
-│   ├── db/              # Database client and utilities
-│   ├── lib/             # Core libraries and utilities
-│   │   ├── email/       # Email service implementation
-│   │   ├── queue/       # Queue management with BullMQ
-│   │   └── weather/     # Weather service implementation
-│   ├── middleware/     # Middlewares
-│   ├── modules/         # Feature modules
-│   │   ├── subscription/# Subscription management
-│   │   └── weather/     # Weather endpoints
-│   ├── types/           # Type definitions
-│   ├── app.ts           # API entry point
-│   └── index.ts         # Application entry point
-│   └── types.d.ts       # TypeScript declarations
-├── prisma/              # Database schema and migrations
+│   ├── constants/        # Application-wide constants
+│   ├── db/               # Database client and utilities
+│   ├── infrastructure/   # External services and infrastructure logic
+│   │   ├── email/        # Email service implementation
+│   │   ├── queue/        # Queue management with BullMQ
+│   │   ├── repositories/ # Database-specific repository implementations
+│   │   └── weather/      # Weather provider implementation
+│   ├── middleware/       # Express middlewares
+│   ├── modules/          # Feature modules
+│   │   ├── subscription/ # Subscription management
+│   │   └── weather/      # Weather-related endpoints
+│   ├── shared/           # Code shared across different modules
+│   │   ├── logger/       # Logger implementation
+│   │   └── ports/        # Interfaces for repositories and services (ports)
+│   ├── types/            # Global type definitions
+│   ├── app.ts            # Express app setup
+│   ├── index.ts          # Application entry point
+│   └── types.d.ts        # Global TypeScript declarations
+├── prisma/               # Database schema and migrations
 ```
 
 # All commands should be run from 'backend' folder
+
+```bash
+cd backend
+```
 
 ## Environment Setup
 

@@ -1,6 +1,6 @@
 import { ZodObject, ZodRawShape, ZodError, ZodEffects } from "zod";
 import { Request, Response, NextFunction } from "express";
-import { BadRequestException } from "../lib";
+import { BadRequestException } from "@/shared";
 
 export function bodyValidator<T extends ZodRawShape>(schema: ZodObject<T>) {
   return (req: Request, _res: Response, next: NextFunction) => {
