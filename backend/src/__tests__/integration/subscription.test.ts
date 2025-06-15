@@ -134,6 +134,7 @@ describe("Subscription Endpoints", () => {
   });
 
   describe("GET /api/unsubscribe/:token", () => {
+    //? Tried to also test for removal of the job scheduler, but it's not working at all, something wrong with bullmq's removeJobScheduler
     it("should unsubscribe a subscription", async () => {
       const subscription = await createSubscription({
         confirmed: true,

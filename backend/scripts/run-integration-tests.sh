@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Exit immediately if a command exits with a non-zero status.
 set -e
 
 source .env.test
@@ -9,18 +8,13 @@ export DATABASE_URL="$DATABASE_URL_EXTERNAL"
 export REDIS_HOST="$REDIS_HOST_EXTERNAL"
 export REDIS_PORT="$REDIS_PORT_EXTERNAL"
 
-# --- Docker Compose File ---
 COMPOSE_FILE="docker-compose.test.yml"
 
-# --- Functions ---
 cleanup() {
   echo "--- Shutting down test containers ---"
   docker compose -f "$COMPOSE_FILE" down --volumes
 }
 
-# --- Main Script ---
-
-# Register the cleanup function to be called on the EXIT signal
 trap cleanup EXIT
 
 echo "--- Starting test containers ---"
