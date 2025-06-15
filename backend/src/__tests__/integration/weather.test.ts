@@ -6,7 +6,9 @@ import { WeatherData } from "@/shared/ports";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { WeatherCache } from "@prisma/client";
 import { StatusCodes } from "http-status-codes";
+import { http, HttpResponse } from "msw";
 import request from "supertest";
+import { server } from "../mocks/node";
 
 describe("Weather Endpoints", () => {
   const mockWeatherData: WeatherData = {
@@ -20,17 +22,37 @@ describe("Weather Endpoints", () => {
   });
 
   describe("GET /api/weather", () => {
-    it("should return cached weather data if cache is fresh", async () => {
+    it("should return correct weather data and cache it", async () => {
       const query: GetWeatherQuery = { city: "London" };
       const now = new Date();
 
+      const response = await request(app).get("/api/weather").query(query);
+
+      const after = new Date();
+
+      expect(response.status).toBe(StatusCodes.OK);
+      expect(response.body).toEqual(mockWeatherData);
+      const cached = await db.weatherCache.findUnique({
+        where: {
+          city: "London",
+        },
+      });
+      expect(cached).toBeDefined();
+      expect(cached?.fetchedAt?.getTime()).toBeGreaterThan(now.getTime());
+      expect(cached?.fetchedAt?.getTime()).toBeLessThan(after.getTime());
+    });
+
+    it("should return correct weather data from cache", async () => {
+      const query: GetWeatherQuery = { city: "London" };
+      const now = new Date();
+      const fetchedAt = new Date(now.getTime() - CACHE_THRESHOLD + 1000);
       const cachedData: WeatherCache = {
         id: 1,
         city: "London",
         temperature: mockWeatherData.temperature,
         humidity: mockWeatherData.humidity,
         description: mockWeatherData.description,
-        fetchedAt: new Date(now.getTime() - (CACHE_THRESHOLD - 1000)), // Cache is still fresh
+        fetchedAt,
       };
       await db.weatherCache.create({
         data: cachedData,
@@ -40,65 +62,30 @@ describe("Weather Endpoints", () => {
 
       expect(response.status).toBe(StatusCodes.OK);
       expect(response.body).toEqual(mockWeatherData);
+      const cached = await db.weatherCache.findUnique({
+        where: {
+          city: "London",
+        },
+      });
+      expect(cached).toBeDefined();
+      expect(cached?.fetchedAt?.getTime()).toEqual(fetchedAt.getTime());
     });
 
-    // it("should fetch new weather data if cache is stale", async () => {
-    //   const query: GetWeatherQuery = { city: "London" };
-    //   const now = new Date();
-    //   const staleData: WeatherCache = {
-    //     id: 1,
+    //? I cannot figure out how to manipulate time to test this
+    // it("should handle external service response timeout", async () => {
+    //   server.use(
+    //     http.get("https://api.weatherapi.com/v1/current.json", async () => {
+    //       await delay("infinite");
+
+    //       return new Response();
+    //     })
+    //   );
+
+    //   const response = await request(app).get("/api/weather").query({
     //     city: "London",
-    //     temperature: mockWeatherData.temperature,
-    //     humidity: mockWeatherData.humidity,
-    //     description: mockWeatherData.description,
-    //     fetchedAt: new Date(now.getTime() - (CACHE_THRESHOLD + 1000)), // Cache is stale
-    //   };
+    //   });
 
-    //   jest.mocked(prisma.weatherCache.findUnique).mockResolvedValue(staleData);
-    //   jest
-    //     .mocked(weatherExternalService.getWeatherData)
-    //     .mockResolvedValue(mockWeatherData);
-    //   jest
-    //     .mocked(weatherService.upsertWeatherCache)
-    //     .mockResolvedValue(undefined);
-
-    //   const response = await request(app).get("/api/weather").query(query);
-
-    //   expect(response.status).toBe(HTTP_STATUS_CODE.SUCCESS);
-    //   expect(response.body).toEqual(mockWeatherData);
-
-    //   expect(weatherExternalService.getWeatherData).toHaveBeenCalledWith(
-    //     "London"
-    //   );
-    //   expect(weatherService.upsertWeatherCache).toHaveBeenCalledWith(
-    //     "London",
-    //     mockWeatherData
-    //   );
-    // });
-
-    // it("should fetch new weather data if no cache exists", async () => {
-    //   const query: GetWeatherQuery = { city: "London" };
-
-    //   jest.mocked(prisma.weatherCache.findUnique).mockResolvedValue(null);
-    //   jest
-    //     .mocked(weatherExternalService.getWeatherData)
-    //     .mockResolvedValue(mockWeatherData);
-    //   jest
-    //     .mocked(weatherService.upsertWeatherCache)
-    //     .mockResolvedValue(undefined);
-
-    //   const response = await request(app).get("/api/weather").query(query);
-
-    //   expect(response.status).toBe(HTTP_STATUS_CODE.SUCCESS);
-    //   expect(response.body).toEqual(mockWeatherData);
-
-    //   expect(weatherExternalService.getWeatherData).toHaveBeenCalledWith(
-    //     "London"
-    //   );
-    //   expect(weatherService.upsertWeatherCache).toHaveBeenCalledWith(
-    //     "London",
-    //     mockWeatherData
-    //   );
+    //   expect(response.status).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
     // });
 
     it("should return 400 for missing city parameter", async () => {
@@ -111,10 +98,11 @@ describe("Weather Endpoints", () => {
 
     it("should handle external service errors", async () => {
       const query: GetWeatherQuery = { city: "London" };
-
-      // jest
-      //   .mocked(weatherExternalService.getWeatherData)
-      //   .mockRejectedValue(new Error("Failed to fetch weather data"));
+      server.use(
+        http.get("https://api.weatherapi.com/v1/current.json", () => {
+          return HttpResponse.error();
+        })
+      );
 
       const response = await request(app).get("/api/weather").query(query);
 
