@@ -2,7 +2,7 @@ import { createWorker } from "../worker-factory";
 import { QUEUE_TYPES, JOB_TYPES } from "../../constants";
 import { ConfirmEmailProcessor } from "./processor";
 import { WorkerConfig } from "../../types";
-import { createEmailService } from "../../../email/email.factory";
+import { createEmailService } from "@/infrastructure/email/email.factory";
 import { db } from "@/db";
 import { EmailLogRepository } from "@/infrastructure/repositories/email-log.repository";
 import { SubscriptionRepository } from "@/infrastructure/repositories/subscription.repository";

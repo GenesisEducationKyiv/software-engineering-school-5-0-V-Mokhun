@@ -1,6 +1,7 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, passthrough } from "msw";
 
 export const handlers = [
+  http.all("http://127.0.0.1*", () => passthrough()),
   http.get("https://api.weatherapi.com/v1/current.json", ({ request }) => {
     const url = new URL(request.url);
     const city = url.searchParams.get("q");

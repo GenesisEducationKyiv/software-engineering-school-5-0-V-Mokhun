@@ -4,8 +4,6 @@ services:
     container_name: db-test
     env_file:
       - .env.test
-    volumes:
-      - ./db-data/test:/var/lib/postgresql/data
     ports:
       - 5434:5432
     networks:
@@ -26,8 +24,6 @@ services:
       - 6381:6379
     networks:
       - weather-api-network-test
-    volumes:
-      - ./redis-data/test:/data
     restart: always
     command:
       [

@@ -38,3 +38,23 @@ export const allQueues = [
   sendWeatherUpdateEmailQueue,
   updateWeatherDataQueue,
 ];
+
+export const resumeQueues = async () => {
+  await Promise.all(allQueues.map((q) => q.resume()));
+};
+
+export const pauseQueues = async () => {
+  await Promise.all(allQueues.map((q) => q.pause()));
+};
+
+export const clearQueues = async () => {
+  await Promise.all(allQueues.map((q) => q.drain()));
+};
+
+export const obliterateQueues = async () => {
+  await Promise.all(allQueues.map((q) => q.obliterate({ force: true })));
+};
+
+export const closeQueues = async () => {
+  await Promise.all(allQueues.map((q) => q.close()));
+};
