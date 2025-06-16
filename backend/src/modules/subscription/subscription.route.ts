@@ -26,7 +26,7 @@ router.get(
   paramValidator(ConfirmSubscriptionParamsSchema),
   (req, res, next) =>
     controller.confirmSubscription(
-      req as unknown as ConfirmSubscriptionRequest,
+      req as ConfirmSubscriptionRequest,
       res,
       next
     )
@@ -36,14 +36,14 @@ router.get(
   "/unsubscribe/:token",
   paramValidator(UnsubscribeParamsSchema),
   (req, res, next) =>
-    controller.unsubscribe(req as unknown as UnsubscribeRequest, res, next)
+    controller.unsubscribe(req as UnsubscribeRequest, res, next)
 );
 
 router.post(
   "/subscribe",
   bodyValidator(SubscribeBodySchema),
   (req, res, next) =>
-    controller.subscribe(req as unknown as SubscribeRequest, res, next)
+    controller.subscribe(req as SubscribeRequest, res, next)
 );
 
 export { router as subscriptionRouter };

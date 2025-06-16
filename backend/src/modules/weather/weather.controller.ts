@@ -4,7 +4,6 @@ import { WeatherData } from "@/shared/ports";
 
 export interface IWeatherService {
   getWeather(city: string): Promise<WeatherData>;
-  upsertWeatherCache(city: string, data: WeatherData): Promise<void>;
 }
 
 export class WeatherController {

@@ -29,8 +29,4 @@ export class WeatherService implements IWeatherService {
     await this.repo.upsert(city, fresh);
     return fresh;
   }
-
-  upsertWeatherCache(city: string, data: WeatherData) {
-    return this.repo.upsert(city, data);
-  }
 }

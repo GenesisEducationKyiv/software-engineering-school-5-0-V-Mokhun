@@ -8,6 +8,7 @@ import {
   IEmailLogRepository,
 } from "@/shared/ports";
 import { ILogger } from "@/shared/logger/logger.interface";
+import { Subscription } from "@prisma/client";
 
 export class ConfirmEmailProcessor
   implements JobProcessor<ConfirmEmailJobData>
@@ -21,6 +22,7 @@ export class ConfirmEmailProcessor
 
   async handle(job: Job<ConfirmEmailJobData>) {
     const { email, city, confirmToken } = job.data;
+    let subscription: Subscription | null = null;
 
     try {
       await this.emailService.send({
@@ -29,8 +31,10 @@ export class ConfirmEmailProcessor
         html: confirmEmailTemplate(city, confirmToken),
       });
 
-      const subscription =
-        await this.subscriptionRepo.findSubscriptionByEmailAndCity(email, city);
+      subscription = await this.subscriptionRepo.findSubscriptionByEmailAndCity(
+        email,
+        city
+      );
 
       if (!subscription) {
         throw new Error(
@@ -45,20 +49,16 @@ export class ConfirmEmailProcessor
         sentAt: new Date(),
       });
     } catch (error) {
-      const subscription =
-        await this.subscriptionRepo.findSubscriptionByEmailAndCity(email, city);
-
-      if (!subscription) {
-        throw error;
+      if (subscription) {
+        await this.emailLogRepo.create({
+          subscriptionId: subscription.id,
+          status: "failed",
+          type: "subscription_confirmation",
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
+          sentAt: new Date(),
+        });
       }
-
-      await this.emailLogRepo.create({
-        subscriptionId: subscription.id,
-        status: "failed",
-        type: "subscription_confirmation",
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-        sentAt: new Date(),
-      });
 
       throw error;
     }
@@ -71,6 +71,7 @@ export class ConfirmEmailProcessor
   failed(job: Job<ConfirmEmailJobData> | undefined, error: Error) {
     this.logger.error("Confirm email job failed", error, {
       jobId: job?.id,
+      jobData: job?.data,
     });
   }
 }

@@ -16,7 +16,7 @@ const controller = createWeatherController({
 });
 
 router.get("/", queryValidator(GetWeatherQuerySchema), (req, res, next) =>
-  controller.getWeather(req as unknown as GetWeatherRequest, res, next)
+  controller.getWeather(req as GetWeatherRequest, res, next)
 );
 
 export { router as weatherRouter };

@@ -73,6 +73,7 @@ export class SendWeatherUpdateEmailProcessor
   failed(job: Job<SendWeatherUpdateEmailJobData> | undefined, error: Error) {
     this.logger.error("Weather update email job failed", error, {
       jobId: job?.id,
+      jobData: job?.data,
     });
   }
 }

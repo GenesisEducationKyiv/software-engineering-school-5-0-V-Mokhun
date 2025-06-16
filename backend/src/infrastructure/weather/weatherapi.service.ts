@@ -1,9 +1,9 @@
-import { IWeatherProvider, WeatherData } from "@/shared/ports";
 import {
-  HttpException,
-  NotFoundException,
-  ServerErrorException,
-} from "@/shared";
+  IWeatherProvider,
+  WeatherData,
+  weatherDataSchema,
+} from "@/shared/ports";
+import { HttpException, ServerErrorException } from "@/shared";
 import { ILogger } from "@/shared/logger";
 
 export class WeatherApiProvider implements IWeatherProvider {
@@ -31,17 +31,18 @@ export class WeatherApiProvider implements IWeatherProvider {
 
       const data = await response.json();
 
-      if (!data.current) {
-        throw new NotFoundException(`Weather data not found for city: ${city}`);
+      const validated = weatherDataSchema.safeParse({
+        temperature: data?.current?.temp_c,
+        humidity: data?.current?.humidity,
+        description: data?.current?.condition?.text,
+      });
+      if (!validated.success) {
+        throw new ServerErrorException(
+          "Invalid weather data received from API"
+        );
       }
 
-      const result: WeatherData = {
-        temperature: data.current.temp_c,
-        humidity: data.current.humidity,
-        description: data.current.condition.text,
-      };
-
-      return result;
+      return validated.data;
     } catch (error) {
       const err =
         error instanceof Error ? error : new Error(JSON.stringify(error));

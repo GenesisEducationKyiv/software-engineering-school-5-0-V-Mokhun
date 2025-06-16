@@ -10,7 +10,7 @@ export class JobManager {
   public initializeWorkers(): void {
     this.logger.info("Initializing workers...");
 
-    this.workers.forEach((worker) => {
+    for (const worker of this.workers) {
       const queueName = worker.name;
 
       worker.on("error", (error: Error) => {
@@ -25,7 +25,7 @@ export class JobManager {
       });
 
       this.logger.info(`Initialized worker for queue: ${queueName}`);
-    });
+    }
 
     this.logger.info("Workers initialized successfully.");
   }
