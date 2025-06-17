@@ -1,14 +1,22 @@
 import { queryValidator } from "@/middleware";
-import { ParsedRequest } from "@/types/global";
 import { Router } from "express";
-import * as weatherController from "./weather.controller";
-import { GetWeatherQuery, GetWeatherQuerySchema } from "./weather.schema";
+import { createWeatherController } from "./weather.factory";
+import { GetWeatherQuerySchema } from "./weather.schema";
+import { GetWeatherRequest } from "./weather.types";
+import { getDb } from "@/db";
+import { getLogger } from "@/shared/logger";
+import { env } from "@/config";
 
 const router = Router();
 
-export type GetWeatherRequest = ParsedRequest<{}, {}, {}, GetWeatherQuery>;
+const controller = createWeatherController({
+  db: getDb(),
+  logger: getLogger(),
+  apiKey: env.WEATHER_API_KEY,
+});
+
 router.get("/", queryValidator(GetWeatherQuerySchema), (req, res, next) =>
-  weatherController.getWeather(req as unknown as GetWeatherRequest, res, next)
+  controller.getWeather(req as GetWeatherRequest, res, next)
 );
 
 export { router as weatherRouter };

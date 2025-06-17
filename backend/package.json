@@ -8,6 +8,7 @@
     "dev": "dotenv -e .env.development -- nodemon --watch 'src/**/*.ts' --exec 'ts-node -r tsconfig-paths/register' src/index.ts",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
+    "type-check": "tsc --noEmit",
     "test": "cross-env NODE_ENV=test jest",
     "db:generate": "npx prisma generate",
     "db:migrate": "npx prisma migrate dev",
@@ -32,6 +33,7 @@
     "dotenv-expand": "^12.0.2",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
+    "http-status-codes": "^2.3.0",
     "ioredis": "^5.6.1",
     "morgan": "^1.10.0",
     "zod": "^3.24.4"

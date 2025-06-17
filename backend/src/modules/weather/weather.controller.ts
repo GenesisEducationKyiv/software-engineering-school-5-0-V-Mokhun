@@ -1,44 +1,25 @@
 import { NextFunction, Response } from "express";
-import { GetWeatherRequest } from "./weather.route";
-import { db } from "@/db";
-import { weatherService as weatherExternalService } from "@/lib/weather";
-import { CACHE_THRESHOLD } from "@/constants";
-import * as weatherService from "./weather.service";
+import { GetWeatherRequest } from "./weather.types";
+import { WeatherData } from "@/shared/ports";
 
-export async function getWeather(
-  req: GetWeatherRequest,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const { city } = req.parsedQuery;
+export interface IWeatherService {
+  getWeather(city: string): Promise<WeatherData>;
+}
 
-    const cachedWeather = await db.weatherCache.findUnique({
-      where: { city },
-    });
+export class WeatherController {
+  constructor(private readonly service: IWeatherService) {}
 
-    if (
-      cachedWeather &&
-      new Date().getTime() - cachedWeather.fetchedAt.getTime() < CACHE_THRESHOLD
-    ) {
-      res.status(200).json({
-        temperature: cachedWeather.temperature,
-        humidity: cachedWeather.humidity,
-        description: cachedWeather.description,
-      });
-      return;
+  getWeather = async (
+    req: GetWeatherRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { city } = req.parsedQuery;
+      const data = await this.service.getWeather(city);
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
     }
-
-    const weatherData = await weatherExternalService.getWeatherData(city);
-
-    await weatherService.upsertWeatherCache(city, weatherData);
-
-    res.status(200).json({
-      temperature: weatherData.temperature,
-      humidity: weatherData.humidity,
-      description: weatherData.description,
-    });
-  } catch (error) {
-    next(error);
-  }
+  };
 }
