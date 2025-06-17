@@ -1,18 +1,19 @@
 import { createWorker } from "../worker-factory";
-import { rootConfig } from "../../config";
 import { QUEUE_TYPES, JOB_TYPES } from "../../constants";
 import { UpdateWeatherDataProcessor } from "./processor";
 import { WorkerConfig } from "../../types";
-import { createQueueService } from "../../queue.factory";
-import { SubscriptionRepository } from "@/infrastructure/repositories/subscription.repository";
 import { db } from "@/db";
-import { createWeatherProvider } from "@/infrastructure/weather/weather.factory";
+import { SubscriptionRepository } from "@/infrastructure/repositories/subscription.repository";
 import { getLogger } from "@/shared/logger/logger.factory";
+import { createRootConfig } from "../../config";
+import { createQueueService } from "../../queue.factory";
+import { createWeatherProvider } from "@/infrastructure/weather/weather.factory";
 import { env } from "@/config";
 
 const config: WorkerConfig = {
-  ...rootConfig,
+  ...createRootConfig(),
   queueName: QUEUE_TYPES.UPDATE_WEATHER_DATA,
+  concurrency: 1,
 };
 
 const logger = getLogger();

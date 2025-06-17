@@ -23,6 +23,7 @@ export class ConfirmEmailProcessor
   async handle(job: Job<ConfirmEmailJobData>) {
     const { email, city, confirmToken } = job.data;
     let subscription: Subscription | null = null;
+    let subscriptionLookedUp = false;
 
     try {
       await this.emailService.send({
@@ -35,6 +36,8 @@ export class ConfirmEmailProcessor
         email,
         city
       );
+
+      subscriptionLookedUp = true;
 
       if (!subscription) {
         throw new Error(
@@ -49,6 +52,14 @@ export class ConfirmEmailProcessor
         sentAt: new Date(),
       });
     } catch (error) {
+      if (!subscriptionLookedUp) {
+        subscription =
+          await this.subscriptionRepo.findSubscriptionByEmailAndCity(
+            email,
+            city
+          );
+      }
+
       if (subscription) {
         await this.emailLogRepo.create({
           subscriptionId: subscription.id,

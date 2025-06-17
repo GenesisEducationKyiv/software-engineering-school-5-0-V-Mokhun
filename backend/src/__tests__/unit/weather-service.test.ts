@@ -1,7 +1,16 @@
-import { WeatherService } from "@/lib/weather";
-import { HTTP_STATUS_CODE } from "@/constants"; 
-import { describe, expect, it, jest, beforeEach } from "@jest/globals";
+import { createWeatherProvider } from "@/infrastructure/weather/weather.factory";
+import {
+  HttpException,
+  ServerErrorException
+} from "@/shared";
+import { getLogger } from "@/shared/logger";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { ReasonPhrases, StatusCodes } from "http-status-codes";
 
+const mockWeatherProvider = createWeatherProvider({
+  logger: getLogger(),
+  apiKey: "test-api-key",
+});
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 global.fetch = mockFetch;
 
@@ -26,8 +35,7 @@ describe("WeatherService", () => {
       json: () => Promise.resolve(mockWeatherData),
     } as Response);
 
-    const weatherService = new WeatherService("test-api-key");
-    const result = await weatherService.getWeatherData("London");
+    const result = await mockWeatherProvider.getWeatherData("London");
 
     expect(result).toEqual({
       temperature: 20,
@@ -49,19 +57,16 @@ describe("WeatherService", () => {
   it("should throw an error if the city is not found", async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      status: HTTP_STATUS_CODE.NOT_FOUND,
-      statusText: "Not Found",
+      status: StatusCodes.NOT_FOUND,
+      statusText: ReasonPhrases.NOT_FOUND,
     } as Response);
 
-    const weatherService = new WeatherService("test-api-key");
     await expect(
-      weatherService.getWeatherData("NonExistentCity")
-    ).rejects.toThrow(
-      "Failed to fetch weather data for NonExistentCity: Not Found"
-    );
+      mockWeatherProvider.getWeatherData("NonExistentCity")
+    ).rejects.toThrowError(HttpException);
   });
 
-  it("should throw not found error if data is not correct", async () => {
+  it("should throw not found error if weather data is not correct", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () =>
@@ -70,9 +75,8 @@ describe("WeatherService", () => {
         }),
     } as Response);
 
-    const weatherService = new WeatherService("test-api-key");
-    await expect(weatherService.getWeatherData("London")).rejects.toThrow(
-      "Weather data not found"
-    );
+    await expect(
+      mockWeatherProvider.getWeatherData("London")
+    ).rejects.toThrowError(ServerErrorException);
   });
 });
