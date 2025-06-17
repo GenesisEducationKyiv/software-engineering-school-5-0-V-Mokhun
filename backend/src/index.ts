@@ -1,8 +1,7 @@
 import { app } from "./app";
 import { env } from "./config";
-import { redisConnection } from "./infrastructure/queue";
-import { JobManager } from "./infrastructure/queue/job-manager.service";
-import { workers } from "./infrastructure/queue/workers";
+import { connectDb } from "./db";
+import { JobManager, workers } from "./infrastructure/queue";
 import { getLogger } from "./shared/logger/logger.factory";
 
 async function startServer() {
@@ -12,6 +11,7 @@ async function startServer() {
     const server = app.listen(env.API_PORT, () => {
       logger.info(`Server is running on port ${env.API_PORT}`);
     });
+    await connectDb();
 
     const jobManager = new JobManager(workers, logger);
     jobManager.initializeWorkers();
@@ -22,7 +22,6 @@ async function startServer() {
       });
 
       await jobManager.stopWorkers();
-      await redisConnection.quit();
 
       process.exit(0);
     };
