@@ -24,6 +24,7 @@ const envSchema = z
     SENDGRID_API_KEY: z.string(),
     SENDGRID_FROM_EMAIL: z.string().email(),
     WEATHER_API_KEY: z.string(),
+    LOG_FILE_PATH: z.string(),
   })
   .passthrough();
 
