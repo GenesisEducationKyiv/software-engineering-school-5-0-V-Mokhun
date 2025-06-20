@@ -1,17 +1,12 @@
 import { jest } from "@jest/globals";
 import { IWeatherProvider, WeatherData } from "@/shared/ports";
+import { mockWeatherData } from "./weather";
 
 export const createMockWeatherProvider = (): jest.Mocked<IWeatherProvider> => ({
   getWeatherData: jest.fn(),
 });
 
 export const mockWeatherProvider = createMockWeatherProvider();
-
-export const mockWeatherData: WeatherData = {
-  temperature: 25,
-  humidity: 60,
-  description: "Sunny",
-};
 
 export class MockWeatherProvider implements IWeatherProvider {
   constructor(private readonly shouldFail: boolean = false) {}
@@ -22,4 +17,4 @@ export class MockWeatherProvider implements IWeatherProvider {
     }
     return Promise.resolve(mockWeatherData);
   }
-} 
+}

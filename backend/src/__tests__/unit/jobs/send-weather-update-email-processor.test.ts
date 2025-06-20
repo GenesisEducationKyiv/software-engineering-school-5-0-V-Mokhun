@@ -1,14 +1,13 @@
-import { describe, expect, it, jest, beforeEach } from "@jest/globals";
-import { SendWeatherUpdateEmailProcessor } from "@/infrastructure/queue/jobs/send-weather-update-email/processor";
-import { SendWeatherUpdateEmailJobData } from "@/infrastructure/queue/jobs/send-weather-update-email/types";
-import { WeatherData } from "@/shared/ports";
 import {
-  createMockEmailService,
-  createMockSubscriptionRepository,
   createMockEmailLogRepository,
-  createMockLogger,
+  createMockEmailService,
   createMockJob,
+  createMockLogger,
+  createMockSubscriptionRepository,
+  mockSendWeatherUpdateEmailJobData,
 } from "@/__tests__/mocks";
+import { SendWeatherUpdateEmailProcessor } from "@/infrastructure/queue/jobs/send-weather-update-email/processor";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
 const mockEmailService = createMockEmailService();
 const mockSubscriptionRepo = createMockSubscriptionRepository();
@@ -30,46 +29,40 @@ describe("SendWeatherUpdateEmailProcessor", () => {
   });
 
   describe("handle", () => {
-    const mockWeatherData: WeatherData = {
-      temperature: 20,
-      humidity: 60,
-      description: "Sunny",
-    };
-
-    const completeJobData: SendWeatherUpdateEmailJobData = {
-      subscriptionId: 1,
-      email: "test@example.com",
-      city: "London",
-      unsubscribeToken: "unsubscribe-token-123",
-      weatherData: mockWeatherData,
-    };
-
     it("should send weather update email and log success", async () => {
-      const job = createMockJob(completeJobData, "send-weather-update-email");
+      const job = createMockJob(
+        mockSendWeatherUpdateEmailJobData,
+        "send-weather-update-email"
+      );
 
       await processor.handle(job);
 
       expect(mockEmailService.send).toHaveBeenCalledWith({
-        to: "test@example.com",
-        subject: "Weather Update for London",
-        html: expect.stringContaining("London"),
+        to: mockSendWeatherUpdateEmailJobData.email,
+        subject: expect.stringContaining(
+          mockSendWeatherUpdateEmailJobData.city
+        ),
+        html: expect.stringContaining(mockSendWeatherUpdateEmailJobData.city),
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
-        subscriptionId: 1,
+        subscriptionId: mockSendWeatherUpdateEmailJobData.subscriptionId,
         type: "weather_update",
         status: "sent",
         sentAt: expect.any(Date),
       });
 
       expect(mockSubscriptionRepo.updateLastSentAt).toHaveBeenCalledWith(
-        1,
+        mockSendWeatherUpdateEmailJobData.subscriptionId,
         expect.any(Date)
       );
     });
 
     it("should return early if some data is missing", async () => {
-      const incompleteJobData = { ...completeJobData, email: "" };
+      const incompleteJobData = {
+        ...mockSendWeatherUpdateEmailJobData,
+        email: "",
+      };
       const job = createMockJob(incompleteJobData, "send-weather-update-email");
 
       await processor.handle(job);
@@ -80,26 +73,30 @@ describe("SendWeatherUpdateEmailProcessor", () => {
     });
 
     it("should handle email service error and log failure", async () => {
-      const job = createMockJob(completeJobData, "send-weather-update-email");
-      const emailError = new Error("Email service error");
+      const job = createMockJob(
+        mockSendWeatherUpdateEmailJobData,
+        "send-weather-update-email"
+      );
+      const errorMessage = "Email service error";
+      const emailError = new Error(errorMessage);
 
       mockEmailService.send.mockRejectedValue(emailError);
 
-      await expect(processor.handle(job)).rejects.toThrow(
-        "Email service error"
-      );
+      await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
       expect(mockEmailService.send).toHaveBeenCalledWith({
-        to: "test@example.com",
-        subject: "Weather Update for London",
-        html: expect.stringContaining("London"),
+        to: mockSendWeatherUpdateEmailJobData.email,
+        subject: expect.stringContaining(
+          mockSendWeatherUpdateEmailJobData.city
+        ),
+        html: expect.stringContaining(mockSendWeatherUpdateEmailJobData.city),
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
-        subscriptionId: 1,
+        subscriptionId: mockSendWeatherUpdateEmailJobData.subscriptionId,
         status: "failed",
         type: "weather_update",
-        errorMessage: "Email service error",
+        errorMessage,
         sentAt: expect.any(Date),
       });
 
@@ -107,7 +104,10 @@ describe("SendWeatherUpdateEmailProcessor", () => {
     });
 
     it("should handle unknown error type in error logging", async () => {
-      const job = createMockJob(completeJobData, "send-weather-update-email");
+      const job = createMockJob(
+        mockSendWeatherUpdateEmailJobData,
+        "send-weather-update-email"
+      );
       const unknownError = "String error";
 
       mockEmailService.send.mockRejectedValue(unknownError);
@@ -115,7 +115,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
       await expect(processor.handle(job)).rejects.toBe(unknownError);
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
-        subscriptionId: 1,
+        subscriptionId: mockSendWeatherUpdateEmailJobData.subscriptionId,
         status: "failed",
         type: "weather_update",
         errorMessage: "Unknown error",
@@ -126,35 +126,39 @@ describe("SendWeatherUpdateEmailProcessor", () => {
     });
 
     it("should handle email log repository error during success path", async () => {
-      const job = createMockJob(completeJobData, "send-weather-update-email");
-      const logError = new Error("Log repository error");
+      const job = createMockJob(
+        mockSendWeatherUpdateEmailJobData,
+        "send-weather-update-email"
+      );
+      const errorMessage = "Log repository error";
+      const logError = new Error(errorMessage);
 
       mockEmailLogRepo.create.mockRejectedValueOnce(logError);
 
-      await expect(processor.handle(job)).rejects.toThrow(
-        "Log repository error"
-      );
+      await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
       expect(mockEmailService.send).toHaveBeenCalledWith({
-        to: "test@example.com",
-        subject: "Weather Update for London",
-        html: expect.stringContaining("London"),
+        to: mockSendWeatherUpdateEmailJobData.email,
+        subject: expect.stringContaining(
+          mockSendWeatherUpdateEmailJobData.city
+        ),
+        html: expect.stringContaining(mockSendWeatherUpdateEmailJobData.city),
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledTimes(2);
 
       expect(mockEmailLogRepo.create).toHaveBeenNthCalledWith(1, {
-        subscriptionId: 1,
+        subscriptionId: mockSendWeatherUpdateEmailJobData.subscriptionId,
         type: "weather_update",
         status: "sent",
         sentAt: expect.any(Date),
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenNthCalledWith(2, {
-        subscriptionId: 1,
+        subscriptionId: mockSendWeatherUpdateEmailJobData.subscriptionId,
         status: "failed",
         type: "weather_update",
-        errorMessage: "Log repository error",
+        errorMessage,
         sentAt: expect.any(Date),
       });
 
@@ -162,29 +166,35 @@ describe("SendWeatherUpdateEmailProcessor", () => {
     });
 
     it("should handle subscription repository error during success path", async () => {
-      const job = createMockJob(completeJobData, "send-weather-update-email");
-      const repoError = new Error("Repository error");
+      const job = createMockJob(
+        mockSendWeatherUpdateEmailJobData,
+        "send-weather-update-email"
+      );
+      const errorMessage = "Repository error";
+      const repoError = new Error(errorMessage);
 
       mockEmailLogRepo.create.mockResolvedValue(undefined);
       mockSubscriptionRepo.updateLastSentAt.mockRejectedValue(repoError);
 
-      await expect(processor.handle(job)).rejects.toThrow("Repository error");
+      await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
       expect(mockEmailService.send).toHaveBeenCalledWith({
-        to: "test@example.com",
-        subject: "Weather Update for London",
-        html: expect.stringContaining("London"),
+        to: mockSendWeatherUpdateEmailJobData.email,
+        subject: expect.stringContaining(
+          mockSendWeatherUpdateEmailJobData.city
+        ),
+        html: expect.stringContaining(mockSendWeatherUpdateEmailJobData.city),
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
-        subscriptionId: 1,
+        subscriptionId: mockSendWeatherUpdateEmailJobData.subscriptionId,
         type: "weather_update",
         status: "sent",
         sentAt: expect.any(Date),
       });
 
       expect(mockSubscriptionRepo.updateLastSentAt).toHaveBeenCalledWith(
-        1,
+        mockSendWeatherUpdateEmailJobData.subscriptionId,
         expect.any(Date)
       );
     });
@@ -192,18 +202,11 @@ describe("SendWeatherUpdateEmailProcessor", () => {
 
   describe("completed", () => {
     it("should log completion message", () => {
-      const jobData: SendWeatherUpdateEmailJobData = {
-        subscriptionId: 1,
-        email: "test@example.com",
-        city: "London",
-        unsubscribeToken: "unsubscribe-token-123",
-        weatherData: {
-          temperature: 20,
-          humidity: 60,
-          description: "Sunny",
-        },
-      };
-      const job = createMockJob(jobData, "send-weather-update-email");
+      const job = createMockJob(
+        mockSendWeatherUpdateEmailJobData,
+        "send-weather-update-email",
+        "123"
+      );
 
       processor.completed(job);
 
@@ -218,19 +221,13 @@ describe("SendWeatherUpdateEmailProcessor", () => {
 
   describe("failed", () => {
     it("should log failure message with job data", () => {
-      const jobData: SendWeatherUpdateEmailJobData = {
-        subscriptionId: 1,
-        email: "test@example.com",
-        city: "London",
-        unsubscribeToken: "unsubscribe-token-123",
-        weatherData: {
-          temperature: 20,
-          humidity: 60,
-          description: "Sunny",
-        },
-      };
-      const job = createMockJob(jobData, "send-weather-update-email");
-      const error = new Error("Test error");
+      const job = createMockJob(
+        mockSendWeatherUpdateEmailJobData,
+        "send-weather-update-email",
+        "123"
+      );
+      const errorMessage = "Test error";
+      const error = new Error(errorMessage);
 
       processor.failed(job, error);
 
@@ -244,7 +241,8 @@ describe("SendWeatherUpdateEmailProcessor", () => {
     });
 
     it("should log failure message without job data when job is undefined", () => {
-      const error = new Error("Test error");
+      const errorMessage = "Test error";
+      const error = new Error(errorMessage);
 
       processor.failed(undefined, error);
 

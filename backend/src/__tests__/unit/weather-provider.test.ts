@@ -1,15 +1,12 @@
 import { WeatherProvider } from "@/infrastructure/weather/weather.provider";
 import { IWeatherProvider } from "@/shared/ports";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { mockLogger } from "../mocks/logger";
-import {
-  mockWeatherData,
-  MockWeatherProvider,
-} from "../mocks/weather.provider";
+import { mockLogger, mockWeatherData, MockWeatherProvider } from "../mocks";
 
 describe("WeatherProvider", () => {
   let provider1: IWeatherProvider;
   let provider2: IWeatherProvider;
+  const city = "London";
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -25,10 +22,10 @@ describe("WeatherProvider", () => {
       [provider1, provider2],
       mockLogger
     );
-    const result = await weatherProvider.getWeatherData("London");
+    const result = await weatherProvider.getWeatherData(city);
 
     expect(result).toEqual(mockWeatherData);
-    expect(getWeatherDataSpy1).toHaveBeenCalledWith("London");
+    expect(getWeatherDataSpy1).toHaveBeenCalledWith(city);
     expect(getWeatherDataSpy2).not.toHaveBeenCalled();
     expect(mockLogger.info).toHaveBeenCalled();
     expect(mockLogger.warn).not.toHaveBeenCalled();
@@ -44,10 +41,10 @@ describe("WeatherProvider", () => {
       [provider1, provider2],
       mockLogger
     );
-    const result = await weatherProvider.getWeatherData("London");
+    const result = await weatherProvider.getWeatherData(city);
 
     expect(result).toEqual(mockWeatherData);
-    expect(getWeatherDataSpy1).toHaveBeenCalledWith("London");
+    expect(getWeatherDataSpy1).toHaveBeenCalledWith(city);
     expect(getWeatherDataSpy2).toHaveBeenCalledWith("London");
     expect(mockLogger.warn).toHaveBeenCalledTimes(1);
     expect(mockLogger.info).toHaveBeenCalledTimes(1);
@@ -64,10 +61,10 @@ describe("WeatherProvider", () => {
       mockLogger
     );
 
-    await expect(weatherProvider.getWeatherData("London")).rejects.toThrow();
+    await expect(weatherProvider.getWeatherData(city)).rejects.toThrow();
 
-    expect(getWeatherDataSpy1).toHaveBeenCalledWith("London");
-    expect(getWeatherDataSpy2).toHaveBeenCalledWith("London");
+    expect(getWeatherDataSpy1).toHaveBeenCalledWith(city);
+    expect(getWeatherDataSpy2).toHaveBeenCalledWith(city);
     expect(mockLogger.warn).toHaveBeenCalledTimes(2);
     expect(mockLogger.error).toHaveBeenCalledTimes(1);
   });

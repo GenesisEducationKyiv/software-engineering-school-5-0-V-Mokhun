@@ -14,13 +14,15 @@ import {
 import { server } from "../mocks/node";
 
 describe("Weather Endpoints", () => {
+  const city = "London";
+
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   describe("GET /api/weather", () => {
     it("should return correct weather data from the first provider and cache it", async () => {
-      const query: GetWeatherQuery = { city: "London" };
+      const query: GetWeatherQuery = { city };
       const now = new Date();
 
       const response = await request(app).get("/api/weather").query(query);
@@ -31,7 +33,7 @@ describe("Weather Endpoints", () => {
       expect(response.body).toEqual(mockWeatherDataFromApi);
       const cached = await db.weatherCache.findUnique({
         where: {
-          city: "London",
+          city,
         },
       });
       expect(cached).toBeDefined();
@@ -45,7 +47,7 @@ describe("Weather Endpoints", () => {
           return HttpResponse.error();
         })
       );
-      const query: GetWeatherQuery = { city: "London" };
+      const query: GetWeatherQuery = { city };
       const now = new Date();
 
       const response = await request(app).get("/api/weather").query(query);
@@ -56,7 +58,7 @@ describe("Weather Endpoints", () => {
       expect(response.body).toEqual(mockWeatherDataFromOpenMeteo);
       const cached = await db.weatherCache.findUnique({
         where: {
-          city: "London",
+          city,
         },
       });
       expect(cached).toBeDefined();
@@ -65,12 +67,12 @@ describe("Weather Endpoints", () => {
     });
 
     it("should return correct weather data from cache", async () => {
-      const query: GetWeatherQuery = { city: "London" };
+      const query: GetWeatherQuery = { city };
       const now = new Date();
       const fetchedAt = new Date(now.getTime() - CACHE_THRESHOLD + 1000);
       const cachedData: WeatherCache = {
         id: 1,
-        city: "London",
+        city,
         temperature: mockWeatherDataFromApi.temperature,
         humidity: mockWeatherDataFromApi.humidity,
         description: mockWeatherDataFromApi.description,
@@ -86,7 +88,7 @@ describe("Weather Endpoints", () => {
       expect(response.body).toEqual(mockWeatherDataFromApi);
       const cached = await db.weatherCache.findUnique({
         where: {
-          city: "London",
+          city,
         },
       });
       expect(cached).toBeDefined();
@@ -119,7 +121,7 @@ describe("Weather Endpoints", () => {
     });
 
     it("should handle external service errors", async () => {
-      const query: GetWeatherQuery = { city: "London" };
+      const query: GetWeatherQuery = { city };
       server.use(
         http.get("https://api.weatherapi.com/v1/current.json", () => {
           return HttpResponse.error();

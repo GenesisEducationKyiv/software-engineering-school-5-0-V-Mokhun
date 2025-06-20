@@ -1,17 +1,14 @@
 import { app } from "@/app";
-import {
-  FREQUENCY_TO_CRON,
-  SUBSCRIPTION_CONFIRMATION_EXPIRATION_TIME,
-} from "@/constants";
+import { FREQUENCY_TO_CRON } from "@/constants";
 import { db } from "@/db";
 import { QUEUE_TYPES } from "@/infrastructure/queue";
 import { allQueues } from "@/infrastructure/queue/queues";
 import { SubscriptionCreate } from "@/shared/ports";
 import { describe, expect, it } from "@jest/globals";
-import { Frequency } from "@prisma/client";
 import { Queue } from "bullmq";
 import { StatusCodes } from "http-status-codes";
 import request from "supertest";
+import { mockSubscription } from "../mocks";
 
 describe("Subscription Endpoints", () => {
   const confirmEmailQueue = allQueues.find(
@@ -20,17 +17,11 @@ describe("Subscription Endpoints", () => {
   const updateWeatherDataQueue = allQueues.find(
     (q) => q.name === QUEUE_TYPES.UPDATE_WEATHER_DATA
   ) as Queue;
-  const createSubscription = async (data: Partial<SubscriptionCreate>) => {
+
+  const createSubscription = async (data: Partial<SubscriptionCreate> = {}) => {
     const subscription = await db.subscription.create({
       data: {
-        email: "test@test.com",
-        city: "London",
-        frequency: Frequency.DAILY,
-        unsubscribeToken: "123",
-        confirmToken: "456",
-        confirmTokenExpiresAt: new Date(
-          Date.now() + SUBSCRIPTION_CONFIRMATION_EXPIRATION_TIME
-        ),
+        ...mockSubscription,
         ...data,
       },
     });
@@ -40,8 +31,8 @@ describe("Subscription Endpoints", () => {
   describe("POST /api/subscribe", () => {
     it("should create a subscription and queue a confirmation email job", async () => {
       const response = await request(app).post("/api/subscribe").send({
-        email: "test@test.com",
-        city: "London",
+        email: mockSubscription.email,
+        city: mockSubscription.city,
         frequency: "daily",
       });
 
@@ -50,8 +41,8 @@ describe("Subscription Endpoints", () => {
       const subscription = await db.subscription.findUnique({
         where: {
           email_city: {
-            email: "test@test.com",
-            city: "London",
+            email: mockSubscription.email,
+            city: mockSubscription.city,
           },
         },
       });
@@ -62,8 +53,8 @@ describe("Subscription Endpoints", () => {
       const jobs = await confirmEmailQueue.getJobs();
       const [job] = jobs;
       expect(job).toBeTruthy();
-      expect(job?.data?.email).toBe("test@test.com");
-      expect(job?.data?.city).toBe("London");
+      expect(job?.data?.email).toBe(subscription?.email);
+      expect(job?.data?.city).toBe(subscription?.city);
       expect(job?.data?.confirmToken).toBe(subscription?.confirmToken);
     });
 
@@ -73,8 +64,8 @@ describe("Subscription Endpoints", () => {
       });
 
       const response = await request(app).post("/api/subscribe").send({
-        email: "test@test.com",
-        city: "London",
+        email: mockSubscription.email,
+        city: mockSubscription.city,
         frequency: "daily",
       });
 
@@ -84,9 +75,7 @@ describe("Subscription Endpoints", () => {
 
   describe("GET /api/confirm/:token", () => {
     it("should confirm a subscription and schedule a weather update", async () => {
-      const subscription = await createSubscription({
-        confirmed: false,
-      });
+      const subscription = await createSubscription();
 
       const response = await request(app).get(
         `/api/confirm/${subscription.confirmToken}`
@@ -112,9 +101,7 @@ describe("Subscription Endpoints", () => {
     });
 
     it("should return 404 if confirm token is invalid", async () => {
-      await createSubscription({
-        confirmed: false,
-      });
+      await createSubscription();
 
       const response = await request(app).get("/api/confirm/123");
       expect(response.status).toBe(StatusCodes.NOT_FOUND);

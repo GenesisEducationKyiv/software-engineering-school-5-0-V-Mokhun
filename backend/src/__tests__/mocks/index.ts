@@ -6,4 +6,6 @@ export * from "./queue.service";
 export * from "./subscription.repository";
 export * from "./weather.provider";
 export * from "./handlers";
-export * from "./node"; 
+export * from "./node";
+export * from "./subscription";
+export * from "./weather";

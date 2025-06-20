@@ -1,16 +1,18 @@
-import { describe, expect, it, jest, beforeEach } from "@jest/globals";
-import { UpdateWeatherDataProcessor } from "@/infrastructure/queue/jobs/update-weather-data/processor";
-import { UpdateWeatherDataJobData } from "@/infrastructure/queue/jobs/update-weather-data/types";
-import { WeatherData } from "@/shared/ports";
-import { QUEUE_TYPES, JOB_TYPES } from "@/infrastructure/queue/constants";
-import { Frequency } from "@prisma/client";
 import {
+  createMockJob,
+  createMockLogger,
   createMockQueueService,
   createMockSubscriptionRepository,
   createMockWeatherProvider,
-  createMockLogger,
-  createMockJob,
+  mockConfirmedSubscription,
+  mockSubscription,
+  mockUpdateWeatherDataJobData,
+  mockWeatherData,
 } from "@/__tests__/mocks";
+import { JOB_TYPES, QUEUE_TYPES } from "@/infrastructure/queue/constants";
+import { UpdateWeatherDataProcessor } from "@/infrastructure/queue/jobs/update-weather-data/processor";
+import { UpdateWeatherDataJobData } from "@/infrastructure/queue/jobs/update-weather-data/types";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
 const mockQueueService = createMockQueueService();
 const mockSubscriptionRepo = createMockSubscriptionRepository();
@@ -31,62 +33,55 @@ describe("UpdateWeatherDataProcessor", () => {
   });
 
   describe("handle", () => {
-    const mockWeatherData: WeatherData = {
-      temperature: 20,
-      humidity: 60,
-      description: "Sunny",
-    };
-
-    const mockSubscription = {
-      id: 1,
-      email: "test@example.com",
-      city: "London",
-      frequency: Frequency.DAILY,
-      confirmed: true,
-      unsubscribeToken: "unsubscribe-token-123",
-      confirmToken: null,
-      confirmTokenExpiresAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastSentAt: null,
-    };
-
     it("should process weather update for confirmed subscription", async () => {
-      const jobData: UpdateWeatherDataJobData = { subscriptionId: 1 };
-      const job = createMockJob(jobData, "update-weather-data");
+      const job = createMockJob(
+        mockUpdateWeatherDataJobData,
+        "update-weather-data"
+      );
 
-      mockSubscriptionRepo.findById.mockResolvedValue(mockSubscription);
+      mockSubscriptionRepo.findById.mockResolvedValue(
+        mockConfirmedSubscription
+      );
       mockWeatherProvider.getWeatherData.mockResolvedValue(mockWeatherData);
 
       await processor.handle(job);
 
-      expect(mockSubscriptionRepo.findById).toHaveBeenCalledWith(1);
-      expect(mockWeatherProvider.getWeatherData).toHaveBeenCalledWith("London");
+      expect(mockSubscriptionRepo.findById).toHaveBeenCalledWith(
+        mockUpdateWeatherDataJobData.subscriptionId
+      );
+      expect(mockWeatherProvider.getWeatherData).toHaveBeenCalledWith(
+        mockSubscription.city
+      );
       expect(mockQueueService.add).toHaveBeenCalledWith(
         QUEUE_TYPES.SEND_WEATHER_UPDATE_EMAIL,
         JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL,
         {
-          email: "test@example.com",
-          city: "London",
-          unsubscribeToken: "unsubscribe-token-123",
+          email: mockSubscription.email,
+          city: mockSubscription.city,
+          unsubscribeToken: mockSubscription.unsubscribeToken,
           weatherData: mockWeatherData,
-          subscriptionId: 1,
+          subscriptionId: mockUpdateWeatherDataJobData.subscriptionId,
         }
       );
     });
 
     it("should skip processing for unconfirmed subscription", async () => {
-      const jobData: UpdateWeatherDataJobData = { subscriptionId: 1 };
-      const job = createMockJob(jobData, "update-weather-data");
-      const unconfirmedSubscription = { ...mockSubscription, confirmed: false };
+      const job = createMockJob(
+        mockUpdateWeatherDataJobData,
+        "update-weather-data"
+      );
 
-      mockSubscriptionRepo.findById.mockResolvedValue(unconfirmedSubscription);
+      mockSubscriptionRepo.findById.mockResolvedValue(mockSubscription);
 
       await processor.handle(job);
 
-      expect(mockSubscriptionRepo.findById).toHaveBeenCalledWith(1);
+      expect(mockSubscriptionRepo.findById).toHaveBeenCalledWith(
+        mockUpdateWeatherDataJobData.subscriptionId
+      );
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringContaining("1")
+        expect.stringContaining(
+          mockUpdateWeatherDataJobData.subscriptionId.toString()
+        )
       );
       expect(mockWeatherProvider.getWeatherData).not.toHaveBeenCalled();
       expect(mockQueueService.add).not.toHaveBeenCalled();
@@ -109,44 +104,58 @@ describe("UpdateWeatherDataProcessor", () => {
     });
 
     it("should propagate weather provider errors", async () => {
-      const jobData: UpdateWeatherDataJobData = { subscriptionId: 1 };
-      const job = createMockJob(jobData, "update-weather-data");
-      const error = new Error("Weather API error");
+      const job = createMockJob(
+        mockUpdateWeatherDataJobData,
+        "update-weather-data"
+      );
+      const errorMessage = "Weather API error";
+      const error = new Error(errorMessage);
 
-      mockSubscriptionRepo.findById.mockResolvedValue(mockSubscription);
+      mockSubscriptionRepo.findById.mockResolvedValue(
+        mockConfirmedSubscription
+      );
       mockWeatherProvider.getWeatherData.mockRejectedValue(error);
 
-      await expect(processor.handle(job)).rejects.toThrow("Weather API error");
+      await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
-      expect(mockSubscriptionRepo.findById).toHaveBeenCalledWith(1);
-      expect(mockWeatherProvider.getWeatherData).toHaveBeenCalledWith("London");
+      expect(mockSubscriptionRepo.findById).toHaveBeenCalledWith(
+        mockUpdateWeatherDataJobData.subscriptionId
+      );
+      expect(mockWeatherProvider.getWeatherData).toHaveBeenCalledWith(
+        mockSubscription.city
+      );
       expect(mockQueueService.add).not.toHaveBeenCalled();
     });
 
     it("should propagate queue service errors", async () => {
-      const jobData: UpdateWeatherDataJobData = { subscriptionId: 1 };
-      const job = createMockJob(jobData, "update-weather-data");
-      const error = new Error("Queue service error");
+      const job = createMockJob(
+        mockUpdateWeatherDataJobData,
+        "update-weather-data"
+      );
+      const errorMessage = "Queue service error";
+      const error = new Error(errorMessage);
 
-      mockSubscriptionRepo.findById.mockResolvedValue(mockSubscription);
+      mockSubscriptionRepo.findById.mockResolvedValue(mockConfirmedSubscription);
       mockWeatherProvider.getWeatherData.mockResolvedValue(mockWeatherData);
       mockQueueService.add.mockRejectedValue(error);
 
-      await expect(processor.handle(job)).rejects.toThrow(
-        "Queue service error"
-      );
+      await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
-      expect(mockSubscriptionRepo.findById).toHaveBeenCalledWith(1);
-      expect(mockWeatherProvider.getWeatherData).toHaveBeenCalledWith("London");
+      expect(mockSubscriptionRepo.findById).toHaveBeenCalledWith(
+        mockUpdateWeatherDataJobData.subscriptionId
+      );
+      expect(mockWeatherProvider.getWeatherData).toHaveBeenCalledWith(
+        mockSubscription.city
+      );
       expect(mockQueueService.add).toHaveBeenCalledWith(
         QUEUE_TYPES.SEND_WEATHER_UPDATE_EMAIL,
         JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL,
         {
-          email: "test@example.com",
-          city: "London",
-          unsubscribeToken: "unsubscribe-token-123",
+          email: mockSubscription.email,
+          city: mockSubscription.city,
+          unsubscribeToken: mockSubscription.unsubscribeToken,
           weatherData: mockWeatherData,
-          subscriptionId: 1,
+          subscriptionId: mockUpdateWeatherDataJobData.subscriptionId,
         }
       );
     });
@@ -154,27 +163,32 @@ describe("UpdateWeatherDataProcessor", () => {
 
   describe("completed", () => {
     it("should log completion message", () => {
-      const jobData: UpdateWeatherDataJobData = { subscriptionId: 1 };
-      const job = createMockJob(jobData, "update-weather-data");
+      const job = createMockJob(
+        mockUpdateWeatherDataJobData,
+        "update-weather-data"
+      );
 
       processor.completed(job);
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining("sub 1")
+        expect.stringContaining(`sub ${job?.data.subscriptionId}`)
       );
     });
   });
 
   describe("failed", () => {
     it("should log failure message with job data", () => {
-      const jobData: UpdateWeatherDataJobData = { subscriptionId: 1 };
-      const job = createMockJob(jobData, "update-weather-data");
-      const error = new Error("Test error");
+      const job = createMockJob(
+        mockUpdateWeatherDataJobData,
+        "update-weather-data"
+      );
+      const errorMessage = "Test error";
+      const error = new Error(errorMessage);
 
       processor.failed(job, error);
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining("sub 1"),
+        expect.stringContaining(`sub ${job?.data.subscriptionId}`),
         error,
         {
           jobId: job?.id,
@@ -184,7 +198,8 @@ describe("UpdateWeatherDataProcessor", () => {
     });
 
     it("should log failure message without job data when job is undefined", () => {
-      const error = new Error("Test error");
+      const errorMessage = "Test error";
+      const error = new Error(errorMessage);
 
       processor.failed(undefined, error);
 
