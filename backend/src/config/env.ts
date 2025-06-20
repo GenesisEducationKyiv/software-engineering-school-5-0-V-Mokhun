@@ -38,6 +38,13 @@ if (!parsed.success) {
   throw new Error("Environment configuration validation failed");
 }
 
-export const env = Object.freeze(parsed.data) as Readonly<
+const rootDir = join(__dirname, "..", "..");
+
+const transformedData = {
+  ...parsed.data,
+  LOG_FILE_PATH: path.resolve(rootDir, parsed.data.LOG_FILE_PATH),
+};
+
+export const env = Object.freeze(transformedData) as Readonly<
   z.infer<typeof envSchema>
 >;
