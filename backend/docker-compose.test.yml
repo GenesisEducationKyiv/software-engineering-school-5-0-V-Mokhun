@@ -1,0 +1,46 @@
+services:
+  db-test:
+    image: postgres:17.5
+    container_name: db-test
+    env_file:
+      - .env.test
+    ports:
+      - 5434:5432
+    networks:
+      - weather-api-network-test
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-test:
+    image: redis:8.0
+    container_name: redis-test
+    env_file:
+      - .env.test
+    ports:
+      - 6381:6379
+    networks:
+      - weather-api-network-test
+    restart: always
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--maxmemory",
+        "512mb",
+        "--maxmemory-policy",
+        "noeviction",
+      ]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  weather-api-network-test:
+    driver: bridge

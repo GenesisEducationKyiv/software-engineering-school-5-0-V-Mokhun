@@ -9,7 +9,7 @@ import { subscriptionRouter, weatherRouter } from "./modules";
 
 export const app = express();
 
-if (env.NODE_ENV !== "production") {
+if (env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 app.use(helmet());

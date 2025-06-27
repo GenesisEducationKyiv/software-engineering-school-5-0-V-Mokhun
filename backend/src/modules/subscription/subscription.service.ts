@@ -6,11 +6,7 @@ import { ISubscriptionService } from "./subscription.controller";
 import { IQueueService, ISubscriptionRepository } from "@/shared/ports";
 import { NotFoundException } from "@/shared";
 import { JOB_TYPES, QUEUE_TYPES } from "@/infrastructure/queue";
-
-const FREQUENCY_TO_CRON: Record<Frequency, string> = {
-  [Frequency.HOURLY]: "0 * * * *",
-  [Frequency.DAILY]: "0 9 * * *",
-};
+import { FREQUENCY_TO_CRON } from "@/constants";
 
 export class SubscriptionService implements ISubscriptionService {
   constructor(
@@ -35,6 +31,7 @@ export class SubscriptionService implements ISubscriptionService {
       confirmToken,
       confirmTokenExpiresAt,
       unsubscribeToken,
+      confirmed: false,
     });
 
     await this.queueService.add(

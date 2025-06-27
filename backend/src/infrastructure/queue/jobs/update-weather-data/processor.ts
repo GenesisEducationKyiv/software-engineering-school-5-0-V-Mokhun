@@ -32,8 +32,6 @@ export class UpdateWeatherDataProcessor
 
     const weatherData = await this.weatherProvider.getWeatherData(city);
 
-    
-
     await this.queueService.add(
       QUEUE_TYPES.SEND_WEATHER_UPDATE_EMAIL,
       JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL,
