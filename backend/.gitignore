@@ -5,3 +5,4 @@ dist
 coverage
 db-data
 redis-data
+log

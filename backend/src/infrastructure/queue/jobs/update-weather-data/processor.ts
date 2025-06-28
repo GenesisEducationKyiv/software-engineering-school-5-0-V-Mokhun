@@ -18,31 +18,38 @@ export class UpdateWeatherDataProcessor
 
   async handle(job: Job<UpdateWeatherDataJobData>) {
     const { subscriptionId } = job.data;
+    try {
+      const subscription = await this.subscriptionRepo.findById(subscriptionId);
 
-    const subscription = await this.subscriptionRepo.findById(subscriptionId);
-
-    if (!subscription?.confirmed) {
-      this.logger.warn(
-        `Skipping weather update for unconfirmed or non-existent subscription ID: ${subscriptionId}`
-      );
-      return;
-    }
-
-    const { email, city, unsubscribeToken } = subscription;
-
-    const weatherData = await this.weatherProvider.getWeatherData(city);
-
-    await this.queueService.add(
-      QUEUE_TYPES.SEND_WEATHER_UPDATE_EMAIL,
-      JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL,
-      {
-        email,
-        city,
-        unsubscribeToken,
-        weatherData,
-        subscriptionId,
+      if (!subscription?.confirmed) {
+        this.logger.warn(
+          `Skipping weather update for unconfirmed or non-existent subscription ID: ${subscriptionId}`
+        );
+        return;
       }
-    );
+
+      const { email, city, unsubscribeToken } = subscription;
+
+      const weatherData = await this.weatherProvider.getWeatherData(city);
+
+      await this.queueService.add(
+        QUEUE_TYPES.SEND_WEATHER_UPDATE_EMAIL,
+        JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL,
+        {
+          email,
+          city,
+          unsubscribeToken,
+          weatherData,
+          subscriptionId,
+        }
+      );
+    } catch (error) {
+      this.logger.error(
+        `Error processing weather update for subscription ID: ${subscriptionId}`,
+        error as Error
+      );
+      throw error;
+    }
   }
 
   completed(job: Job<UpdateWeatherDataJobData>) {

@@ -8,16 +8,19 @@ import { ILogger } from "@/shared/logger";
 export function createWeatherController({
   db,
   logger,
+  providersLogger,
   apiKey,
 }: {
   db: IDatabase;
   logger: ILogger;
+  providersLogger?: ILogger;
   apiKey: string;
 }): WeatherController {
   const repo = new WeatherRepository(db);
   const provider = createWeatherProvider({
     logger,
-    apiKey,
+    providersLogger,
+    weatherApiKey: apiKey,
   });
   const service = new WeatherService(repo, provider);
   return new WeatherController(service);

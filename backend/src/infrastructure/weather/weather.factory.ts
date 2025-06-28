@@ -1,23 +1,35 @@
 import { ILogger } from "@/shared/logger";
 import { IWeatherProvider } from "@/shared/ports";
-import { WeatherApiProvider } from "./weatherapi.service";
+import { OpenMeteoProvider, WeatherApiProvider } from "./providers";
+import { WeatherProvider } from "./weather.provider";
 
 export function createWeatherProvider({
+  providersLogger,
   logger,
-  apiKey,
+  weatherApiKey,
 }: {
+  providersLogger?: ILogger;
   logger: ILogger;
-  apiKey: string;
+  weatherApiKey: string;
 }): IWeatherProvider {
-  if (!apiKey) {
-    logger.error(
-      "Weather provider cannot be created. apiKey is not set.",
-      new Error("Missing Weather API Key")
-    );
-    throw new Error(
-      "Cannot create WeatherProvider due to missing configuration."
-    );
+  const provLogger = providersLogger ?? logger;
+  const providers: IWeatherProvider[] = [];
+
+  if (weatherApiKey) {
+    providers.push(new WeatherApiProvider(provLogger, weatherApiKey));
+  } else {
+    provLogger.warn("WeatherAPI key is not set. Skipping WeatherApiProvider.");
   }
 
-  return new WeatherApiProvider(logger, apiKey);
+  providers.push(new OpenMeteoProvider(provLogger));
+
+  if (providers.length === 0) {
+    logger.error(
+      "Weather provider cannot be created.",
+      new Error("Weather provider cannot be created.")
+    );
+    throw new Error("Weather provider cannot be created.");
+  }
+
+  return new WeatherProvider(providers, logger);
 }

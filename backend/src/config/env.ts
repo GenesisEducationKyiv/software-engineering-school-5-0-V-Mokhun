@@ -24,6 +24,7 @@ const envSchema = z
     SENDGRID_API_KEY: z.string(),
     SENDGRID_FROM_EMAIL: z.string().email(),
     WEATHER_API_KEY: z.string(),
+    LOG_FILE_PATH: z.string(),
   })
   .passthrough();
 
@@ -37,6 +38,13 @@ if (!parsed.success) {
   throw new Error("Environment configuration validation failed");
 }
 
-export const env = Object.freeze(parsed.data) as Readonly<
+const rootDir = join(__dirname, "..", "..");
+
+const transformedData = {
+  ...parsed.data,
+  LOG_FILE_PATH: path.resolve(rootDir, parsed.data.LOG_FILE_PATH),
+};
+
+export const env = Object.freeze(transformedData) as Readonly<
   z.infer<typeof envSchema>
 >;

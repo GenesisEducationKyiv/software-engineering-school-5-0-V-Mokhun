@@ -1,14 +1,14 @@
-import { describe, expect, it, jest, beforeEach } from "@jest/globals";
-import { ConfirmEmailProcessor } from "@/infrastructure/queue/jobs/confirm-email/processor";
-import { ConfirmEmailJobData } from "@/infrastructure/queue/jobs/confirm-email/types";
-import { Frequency } from "@prisma/client";
 import {
-  createMockEmailService,
-  createMockSubscriptionRepository,
   createMockEmailLogRepository,
-  createMockLogger,
+  createMockEmailService,
   createMockJob,
+  createMockLogger,
+  createMockSubscriptionRepository,
+  mockConfirmEmailJobData,
+  mockSubscription,
 } from "@/__tests__/mocks";
+import { ConfirmEmailProcessor } from "@/infrastructure/queue/jobs/confirm-email/processor";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
 const mockEmailService = createMockEmailService();
 const mockSubscriptionRepo = createMockSubscriptionRepository();
@@ -30,28 +30,8 @@ describe("ConfirmEmailProcessor", () => {
   });
 
   describe("handle", () => {
-    const mockSubscription = {
-      id: 1,
-      email: "test@example.com",
-      city: "London",
-      frequency: Frequency.DAILY,
-      confirmed: false,
-      unsubscribeToken: "unsubscribe-token-123",
-      confirmToken: "confirm-token-456",
-      confirmTokenExpiresAt: new Date(Date.now() + 3600000),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastSentAt: null,
-    };
-
-    const jobData: ConfirmEmailJobData = {
-      email: "test@example.com",
-      city: "London",
-      confirmToken: "confirm-token-456",
-    };
-
     it("should send confirmation email and log success", async () => {
-      const job = createMockJob(jobData, "confirm-email");
+      const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
 
       mockSubscriptionRepo.findSubscriptionByEmailAndCity.mockResolvedValue(
         mockSubscription
@@ -60,14 +40,17 @@ describe("ConfirmEmailProcessor", () => {
       await processor.handle(job);
 
       expect(mockEmailService.send).toHaveBeenCalledWith({
-        to: "test@example.com",
-        subject: "Confirm your weather subscription for London",
-        html: expect.stringContaining("London"),
+        to: mockConfirmEmailJobData.email,
+        subject: expect.stringContaining(mockConfirmEmailJobData.city),
+        html: expect.stringContaining(mockConfirmEmailJobData.city),
       });
 
       expect(
         mockSubscriptionRepo.findSubscriptionByEmailAndCity
-      ).toHaveBeenCalledWith("test@example.com", "London");
+      ).toHaveBeenCalledWith(
+        mockConfirmEmailJobData.email,
+        mockConfirmEmailJobData.city
+      );
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
         subscriptionId: 1,
@@ -78,39 +61,41 @@ describe("ConfirmEmailProcessor", () => {
     });
 
     it("should handle email service error and log failure", async () => {
-      const job = createMockJob(jobData, "confirm-email");
-      const emailError = new Error("Email service error");
+      const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
+      const errorMessage = "Email service error";
+      const emailError = new Error(errorMessage);
 
       mockEmailService.send.mockRejectedValue(emailError);
       mockSubscriptionRepo.findSubscriptionByEmailAndCity.mockResolvedValue(
         mockSubscription
       );
 
-      await expect(processor.handle(job)).rejects.toThrow(
-        "Email service error"
-      );
+      await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
       expect(mockEmailService.send).toHaveBeenCalledWith({
-        to: "test@example.com",
-        subject: "Confirm your weather subscription for London",
-        html: expect.stringContaining("London"),
+        to: mockConfirmEmailJobData.email,
+        subject: expect.stringContaining(mockConfirmEmailJobData.city),
+        html: expect.stringContaining(mockConfirmEmailJobData.city),
       });
 
       expect(
         mockSubscriptionRepo.findSubscriptionByEmailAndCity
-      ).toHaveBeenCalledWith("test@example.com", "London");
+      ).toHaveBeenCalledWith(
+        mockConfirmEmailJobData.email,
+        mockConfirmEmailJobData.city
+      );
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
         subscriptionId: 1,
         status: "failed",
         type: "subscription_confirmation",
-        errorMessage: "Email service error",
+        errorMessage,
         sentAt: expect.any(Date),
       });
     });
 
     it("should throw error when subscription not found after sending email", async () => {
-      const job = createMockJob(jobData, "confirm-email");
+      const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
 
       mockSubscriptionRepo.findSubscriptionByEmailAndCity.mockResolvedValue(
         null
@@ -119,20 +104,23 @@ describe("ConfirmEmailProcessor", () => {
       await expect(processor.handle(job)).rejects.toThrow();
 
       expect(mockEmailService.send).toHaveBeenCalledWith({
-        to: "test@example.com",
-        subject: "Confirm your weather subscription for London",
-        html: expect.stringContaining("London"),
+        to: mockConfirmEmailJobData.email,
+        subject: expect.stringContaining(mockConfirmEmailJobData.city),
+        html: expect.stringContaining(mockConfirmEmailJobData.city),
       });
 
       expect(
         mockSubscriptionRepo.findSubscriptionByEmailAndCity
-      ).toHaveBeenCalledWith("test@example.com", "London");
+      ).toHaveBeenCalledWith(
+        mockConfirmEmailJobData.email,
+        mockConfirmEmailJobData.city
+      );
 
       expect(mockEmailLogRepo.create).not.toHaveBeenCalled();
     });
 
     it("should handle unknown error type in error logging", async () => {
-      const job = createMockJob(jobData, "confirm-email");
+      const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
       const unknownError = "String error";
 
       mockEmailService.send.mockRejectedValue(unknownError);
@@ -152,27 +140,29 @@ describe("ConfirmEmailProcessor", () => {
     });
 
     it("should handle email log repository error during success path", async () => {
-      const job = createMockJob(jobData, "confirm-email");
-      const logError = new Error("Log repository error");
+      const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
+      const errorMessage = "Log repository error";
+      const logError = new Error(errorMessage);
 
       mockSubscriptionRepo.findSubscriptionByEmailAndCity.mockResolvedValue(
         mockSubscription
       );
       mockEmailLogRepo.create.mockRejectedValueOnce(logError);
 
-      await expect(processor.handle(job)).rejects.toThrow(
-        "Log repository error"
-      );
+      await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
       expect(mockEmailService.send).toHaveBeenCalledWith({
-        to: "test@example.com",
-        subject: "Confirm your weather subscription for London",
-        html: expect.stringContaining("London"),
+        to: mockConfirmEmailJobData.email,
+        subject: expect.stringContaining(mockConfirmEmailJobData.city),
+        html: expect.stringContaining(mockConfirmEmailJobData.city),
       });
 
       expect(
         mockSubscriptionRepo.findSubscriptionByEmailAndCity
-      ).toHaveBeenCalledWith("test@example.com", "London");
+      ).toHaveBeenCalledWith(
+        mockConfirmEmailJobData.email,
+        mockConfirmEmailJobData.city
+      );
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledTimes(2);
 
@@ -187,7 +177,7 @@ describe("ConfirmEmailProcessor", () => {
         subscriptionId: 1,
         status: "failed",
         type: "subscription_confirmation",
-        errorMessage: "Log repository error",
+        errorMessage,
         sentAt: expect.any(Date),
       });
     });
@@ -195,12 +185,11 @@ describe("ConfirmEmailProcessor", () => {
 
   describe("completed", () => {
     it("should log completion message", () => {
-      const jobData: ConfirmEmailJobData = {
-        email: "test@example.com",
-        city: "London",
-        confirmToken: "confirm-token-456",
-      };
-      const job = createMockJob(jobData, "confirm-email");
+      const job = createMockJob(
+        mockConfirmEmailJobData,
+        "confirm-email",
+        "123"
+      );
 
       processor.completed(job);
 
@@ -215,13 +204,13 @@ describe("ConfirmEmailProcessor", () => {
 
   describe("failed", () => {
     it("should log failure message with job data", () => {
-      const jobData: ConfirmEmailJobData = {
-        email: "test@example.com",
-        city: "London",
-        confirmToken: "confirm-token-456",
-      };
-      const job = createMockJob(jobData, "confirm-email");
-      const error = new Error("Test error");
+      const job = createMockJob(
+        mockConfirmEmailJobData,
+        "confirm-email",
+        "123"
+      );
+      const errorMessage = "Test error";
+      const error = new Error(errorMessage);
 
       processor.failed(job, error);
 
@@ -235,7 +224,8 @@ describe("ConfirmEmailProcessor", () => {
     });
 
     it("should log failure message without job data when job is undefined", () => {
-      const error = new Error("Test error");
+      const errorMessage = "Test error";
+      const error = new Error(errorMessage);
 
       processor.failed(undefined, error);
 
