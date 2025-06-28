@@ -78,9 +78,20 @@ services:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
 
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:12.0.2
+    ports:
+      - 3000:3000
+    networks:
+      - weather-api-network
+    volumes:
+      - grafana-data:/var/lib/grafana
+
 networks:
   weather-api-network:
     driver: bridge
 
 volumes:
   prometheus-data:
+  grafana-data:
