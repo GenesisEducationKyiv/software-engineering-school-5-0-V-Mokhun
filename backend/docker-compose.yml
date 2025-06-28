@@ -65,6 +65,22 @@ services:
         condition: service_healthy
     command: ["npm", "run", "start"]
 
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v3.4.2
+    volumes:
+      - "./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - prometheus-data:/prometheus
+    networks:
+      - weather-api-network
+    ports:
+      - 9090:9090
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
 networks:
   weather-api-network:
     driver: bridge
+
+volumes:
+  prometheus-data:

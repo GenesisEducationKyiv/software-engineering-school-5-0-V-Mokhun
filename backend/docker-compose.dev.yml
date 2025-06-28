@@ -80,6 +80,20 @@ services:
           path: ./package.json
     command: ["npm", "run", "dev"]
 
+  prometheus-dev:
+    container_name: prometheus-dev
+    image: prom/prometheus:v3.4.2
+    volumes:
+      - "./monitoring/prometheus-dev.yml:/etc/prometheus/prometheus.yml"
+      - prometheus-data-dev:/prometheus
+    networks:
+      - weather-api-network-dev
+    ports:
+      - 9091:9090
+
 networks:
   weather-api-network-dev:
     driver: bridge
+
+volumes:
+  prometheus-data-dev:
