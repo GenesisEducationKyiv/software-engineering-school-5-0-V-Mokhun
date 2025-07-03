@@ -1,5 +1,5 @@
 import { ConnectionOptions, DefaultJobOptions, Job } from "bullmq";
-import { QUEUE_TYPES, JOB_TYPES } from "./constants";
+import { QUEUE_TYPES, JOB_TYPES } from "@/constants";
 
 export type QueueType = (typeof QUEUE_TYPES)[keyof typeof QUEUE_TYPES];
 export type JobType = (typeof JOB_TYPES)[keyof typeof JOB_TYPES];

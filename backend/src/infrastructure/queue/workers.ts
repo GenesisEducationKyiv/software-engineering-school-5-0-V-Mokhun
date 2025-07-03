@@ -1,10 +1,8 @@
-import { Worker } from "bullmq";
-import { ConfirmEmailWorker } from "./jobs/confirm-email";
-import { SendWeatherUpdateEmailWorker } from "./jobs/send-weather-update-email";
-import { UpdateWeatherDataWorker } from "./jobs/update-weather-data";
+import { getLogger } from "@/shared/logger";
+import { composeWorkers } from "./composition-root";
+import { getDb } from "@/db";
 
-export const workers: Worker[] = [
-  ConfirmEmailWorker,
-  SendWeatherUpdateEmailWorker,
-  UpdateWeatherDataWorker,
-];
+const logger = getLogger();
+const db = getDb();
+
+export const workers = composeWorkers(db, logger);

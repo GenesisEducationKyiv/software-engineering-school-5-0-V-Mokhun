@@ -4,9 +4,16 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { env } from "./config";
-import { errorMiddleware } from "./middleware";
-import { subscriptionRouter, weatherRouter } from "./modules";
+import { getDb } from "./db";
 import { MetricsFactory } from "./infrastructure/metrics";
+import { errorMiddleware } from "./middleware";
+import {
+  createSubscriptionController,
+  createSubscriptionRouter,
+  createWeatherController,
+  createWeatherRouter,
+} from "./modules";
+import { FileLogger, getLogger } from "./shared/logger";
 
 export const app = express();
 
@@ -28,6 +35,21 @@ app.get("/metrics", async (_req, res) => {
   res.set("Content-Type", metricsService.getContentType());
   res.end(await metricsService.getMetrics());
 });
+
+const weatherController = createWeatherController({
+  db: getDb(),
+  logger: new FileLogger(env.LOG_FILE_PATH),
+  providersLogger: getLogger(),
+  apiKey: env.WEATHER_API_KEY,
+  metrics: metricsService,
+});
+const weatherRouter = createWeatherRouter(weatherController);
+
+const subscriptionController = createSubscriptionController({
+  logger: getLogger(),
+  db: getDb(),
+});
+const subscriptionRouter = createSubscriptionRouter(subscriptionController);
 
 app.use("/api", subscriptionRouter);
 app.use("/api/weather", weatherRouter);

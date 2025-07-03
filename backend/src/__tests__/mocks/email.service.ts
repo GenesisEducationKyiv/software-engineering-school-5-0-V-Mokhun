@@ -1,20 +1,33 @@
 import { jest } from "@jest/globals";
-import { IEmailService, SendEmailParams } from "@/shared/ports";
+import {
+  ConfirmationEmailParams,
+  IEmailService,
+  WeatherUpdateEmailParams,
+} from "@/shared/ports";
 
 export class MockEmailService implements IEmailService {
-  public sentEmails: SendEmailParams[] = [];
+  public sentConfirmationEmails: ConfirmationEmailParams[] = [];
+  public sentWeatherUpdateEmails: WeatherUpdateEmailParams[] = [];
 
-  async send(params: SendEmailParams): Promise<void> {
-    this.sentEmails.push(params);
+  async sendConfirmationEmail(params: ConfirmationEmailParams): Promise<void> {
+    this.sentConfirmationEmails.push(params);
+  }
+
+  async sendWeatherUpdateEmail(
+    params: WeatherUpdateEmailParams
+  ): Promise<void> {
+    this.sentWeatherUpdateEmails.push(params);
   }
 
   clear() {
-    this.sentEmails = [];
+    this.sentConfirmationEmails = [];
+    this.sentWeatherUpdateEmails = [];
   }
 }
 
 export const createMockEmailService = (): jest.Mocked<IEmailService> => ({
-  send: jest.fn(),
+  sendConfirmationEmail: jest.fn(),
+  sendWeatherUpdateEmail: jest.fn(),
 });
 
 export const mockEmailService = new MockEmailService();

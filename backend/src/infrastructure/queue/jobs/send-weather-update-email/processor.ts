@@ -1,7 +1,6 @@
 import { Job } from "bullmq";
 import { JobProcessor } from "../../types";
 import { SendWeatherUpdateEmailJobData } from "./types";
-import { weatherUpdateTemplate } from "../../../email";
 import {
   IEmailService,
   ISubscriptionRepository,
@@ -34,17 +33,14 @@ export class SendWeatherUpdateEmailProcessor
     }
 
     try {
-      const emailContent = weatherUpdateTemplate(
-        city,
-        weatherData,
-        unsubscribeToken
+      await this.emailService.sendWeatherUpdateEmail(
+        {
+          to: email,
+          city,
+          weatherData,
+          unsubscribeToken,
+        }
       );
-
-      await this.emailService.send({
-        to: email,
-        subject: `Weather Update for ${city}`,
-        html: emailContent,
-      });
 
       await this.emailLogRepo.create({
         subscriptionId,

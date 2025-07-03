@@ -1,6 +1,6 @@
 import { Job } from "bullmq";
 import { IQueueService, ISubscriptionRepository } from "@/shared/ports";
-import { JOB_TYPES, QUEUE_TYPES } from "../../constants";
+import { JOB_TYPES, QUEUE_TYPES } from "@/constants";
 import { JobProcessor } from "../../types";
 import { UpdateWeatherDataJobData } from "./types";
 import { IWeatherProvider } from "@/shared/ports";
