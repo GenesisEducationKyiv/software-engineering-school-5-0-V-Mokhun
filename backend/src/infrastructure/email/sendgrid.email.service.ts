@@ -1,6 +1,11 @@
 import sgMail from "@sendgrid/mail";
-import { IEmailService, SendEmailParams } from "@/shared/ports";
+import {
+  ConfirmationEmailParams,
+  IEmailService,
+  WeatherUpdateEmailParams,
+} from "@/shared/ports";
 import { ILogger } from "@/shared/logger";
+import { confirmEmailTemplate, weatherUpdateTemplate } from "./templates";
 
 export class SendgridEmailService implements IEmailService {
   constructor(
@@ -12,7 +17,11 @@ export class SendgridEmailService implements IEmailService {
     this.logger.info("SendGrid service configured.");
   }
 
-  async send(params: SendEmailParams): Promise<void> {
+  private async send(params: {
+    to: string;
+    subject: string;
+    html: string;
+  }): Promise<void> {
     const msg = { ...params, from: this.fromEmail };
     try {
       await sgMail.send(msg);
@@ -31,5 +40,23 @@ export class SendgridEmailService implements IEmailService {
       }
       throw error;
     }
+  }
+
+  async sendConfirmationEmail(params: ConfirmationEmailParams): Promise<void> {
+    const subject = `Confirm your weather subscription for ${params.city}`;
+    const html = confirmEmailTemplate(params.city, params.confirmToken);
+    await this.send({ to: params.to, subject, html });
+  }
+
+  async sendWeatherUpdateEmail(
+    params: WeatherUpdateEmailParams
+  ): Promise<void> {
+    const subject = `Weather Update for ${params.city}`;
+    const html = weatherUpdateTemplate(
+      params.city,
+      params.weatherData,
+      params.unsubscribeToken
+    );
+    await this.send({ to: params.to, subject, html });
   }
 }
