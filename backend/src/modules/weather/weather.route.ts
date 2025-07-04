@@ -6,6 +6,7 @@ import { Router } from "express";
 import { createWeatherController } from "./weather.factory";
 import { GetWeatherQuerySchema } from "./weather.schema";
 import { GetWeatherRequest } from "./weather.types";
+import { MetricsFactory } from "@/infrastructure/metrics";
 
 const router = Router();
 
@@ -14,6 +15,7 @@ const controller = createWeatherController({
   logger: new FileLogger(env.LOG_FILE_PATH),
   providersLogger: getLogger(),
   apiKey: env.WEATHER_API_KEY,
+  metrics: MetricsFactory.create(),
 });
 
 router.get("/", queryValidator(GetWeatherQuerySchema), (req, res, next) =>
