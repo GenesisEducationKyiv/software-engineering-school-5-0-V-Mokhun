@@ -1,8 +1,8 @@
 import { queryValidator } from "@/middleware";
 import { Router } from "express";
+import { WeatherController } from "./weather.controller";
 import { GetWeatherQuerySchema } from "./weather.schema";
 import { GetWeatherRequest } from "./weather.types";
-import { WeatherController } from "./weather.controller";
 
 export const createWeatherRouter = (controller: WeatherController) => {
   const router = Router();
