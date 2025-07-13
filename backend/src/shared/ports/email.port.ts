@@ -1,9 +1,20 @@
-export interface SendEmailParams {
+import { WeatherData } from "./weather.port";
+
+export type ConfirmationEmailParams = {
   to: string;
-  subject: string;
-  html: string;
-}
+  city: string;
+  confirmToken: string;
+};
+
+export type WeatherUpdateEmailParams = {
+  to: string;
+  city: string;
+  weatherData: WeatherData;
+  unsubscribeToken: string;
+};
 
 export interface IEmailService {
-  send(params: SendEmailParams): Promise<void>;
+  sendConfirmationEmail(params: ConfirmationEmailParams): Promise<void>;
+
+  sendWeatherUpdateEmail(params: WeatherUpdateEmailParams): Promise<void>;
 }
