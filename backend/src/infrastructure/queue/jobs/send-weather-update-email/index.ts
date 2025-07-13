@@ -1,36 +1,42 @@
-import { JOB_TYPES } from "@/constants";
-import { ILogger } from "@/shared/logger";
-import {
-  IEmailService,
-  IEmailLogRepository,
-  ISubscriptionRepository,
-} from "@/shared/ports";
-import { WorkerConfig } from "../../types";
 import { createWorker } from "../worker-factory";
+import { QUEUE_TYPES, JOB_TYPES } from "../../constants";
 import { SendWeatherUpdateEmailProcessor } from "./processor";
+import { WorkerConfig } from "../../types";
+import { createEmailService } from "@/infrastructure/email/email.factory";
+import { db } from "@/db";
+import { EmailLogRepository } from "@/infrastructure/repositories/email-log.repository";
+import { SubscriptionRepository } from "@/infrastructure/repositories/subscription.repository";
+import { getLogger } from "@/shared/logger/logger.factory";
+import { env } from "@/config";
+import { createRootConfig } from "../../config";
 
-export const createSendWeatherUpdateEmailWorker = (
-  config: WorkerConfig,
-  dependencies: {
-    emailService: IEmailService;
-    subscriptionRepo: ISubscriptionRepository;
-    emailLogRepo: IEmailLogRepository;
-    logger: ILogger;
-  }
-) => {
-  const processor = new SendWeatherUpdateEmailProcessor(
-    dependencies.emailService,
-    dependencies.subscriptionRepo,
-    dependencies.emailLogRepo,
-    dependencies.logger
-  );
-
-  return createWorker(
-    config.queueName,
-    config,
-    processor,
-    JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL
-  );
+const config: WorkerConfig = {
+  ...createRootConfig(),
+  queueName: QUEUE_TYPES.SEND_WEATHER_UPDATE_EMAIL,
+  concurrency: 1,
 };
+
+const logger = getLogger();
+const emailService = createEmailService({
+  logger,
+  apiKey: env.SENDGRID_API_KEY,
+  fromEmail: env.SENDGRID_FROM_EMAIL,
+});
+const subscriptionRepo = new SubscriptionRepository(db);
+const emailLogRepo = new EmailLogRepository(db);
+
+const processor = new SendWeatherUpdateEmailProcessor(
+  emailService,
+  subscriptionRepo,
+  emailLogRepo,
+  logger
+);
+
+export const SendWeatherUpdateEmailWorker = createWorker(
+  config.queueName,
+  config,
+  processor,
+  JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL
+);
 
 export * from "./types";

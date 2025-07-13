@@ -1,6 +1,7 @@
 import { app } from "@/app";
-import { FREQUENCY_TO_CRON, QUEUE_TYPES } from "@/constants";
+import { FREQUENCY_TO_CRON } from "@/constants";
 import { db } from "@/db";
+import { QUEUE_TYPES } from "@/infrastructure/queue";
 import { allQueues } from "@/infrastructure/queue/queues";
 import { SubscriptionCreate } from "@/shared/ports";
 import { describe, expect, it } from "@jest/globals";

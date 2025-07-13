@@ -39,10 +39,10 @@ describe("ConfirmEmailProcessor", () => {
 
       await processor.handle(job);
 
-      expect(mockEmailService.sendConfirmationEmail).toHaveBeenCalledWith({
+      expect(mockEmailService.send).toHaveBeenCalledWith({
         to: mockConfirmEmailJobData.email,
-        city: mockConfirmEmailJobData.city,
-        confirmToken: mockConfirmEmailJobData.confirmToken,
+        subject: expect.stringContaining(mockConfirmEmailJobData.city),
+        html: expect.stringContaining(mockConfirmEmailJobData.city),
       });
 
       expect(
@@ -65,17 +65,17 @@ describe("ConfirmEmailProcessor", () => {
       const errorMessage = "Email service error";
       const emailError = new Error(errorMessage);
 
-      mockEmailService.sendConfirmationEmail.mockRejectedValue(emailError);
+      mockEmailService.send.mockRejectedValue(emailError);
       mockSubscriptionRepo.findSubscriptionByEmailAndCity.mockResolvedValue(
         mockSubscription
       );
 
       await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
-      expect(mockEmailService.sendConfirmationEmail).toHaveBeenCalledWith({
+      expect(mockEmailService.send).toHaveBeenCalledWith({
         to: mockConfirmEmailJobData.email,
-        city: mockConfirmEmailJobData.city,
-        confirmToken: mockConfirmEmailJobData.confirmToken,
+        subject: expect.stringContaining(mockConfirmEmailJobData.city),
+        html: expect.stringContaining(mockConfirmEmailJobData.city),
       });
 
       expect(
@@ -103,10 +103,10 @@ describe("ConfirmEmailProcessor", () => {
 
       await expect(processor.handle(job)).rejects.toThrow();
 
-      expect(mockEmailService.sendConfirmationEmail).toHaveBeenCalledWith({
+      expect(mockEmailService.send).toHaveBeenCalledWith({
         to: mockConfirmEmailJobData.email,
-        city: mockConfirmEmailJobData.city,
-        confirmToken: mockConfirmEmailJobData.confirmToken,
+        subject: expect.stringContaining(mockConfirmEmailJobData.city),
+        html: expect.stringContaining(mockConfirmEmailJobData.city),
       });
 
       expect(
@@ -123,7 +123,7 @@ describe("ConfirmEmailProcessor", () => {
       const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
       const unknownError = "String error";
 
-      mockEmailService.sendConfirmationEmail.mockRejectedValue(unknownError);
+      mockEmailService.send.mockRejectedValue(unknownError);
       mockSubscriptionRepo.findSubscriptionByEmailAndCity.mockResolvedValue(
         mockSubscription
       );
@@ -151,10 +151,10 @@ describe("ConfirmEmailProcessor", () => {
 
       await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
-      expect(mockEmailService.sendConfirmationEmail).toHaveBeenCalledWith({
+      expect(mockEmailService.send).toHaveBeenCalledWith({
         to: mockConfirmEmailJobData.email,
-        city: mockConfirmEmailJobData.city,
-        confirmToken: mockConfirmEmailJobData.confirmToken,
+        subject: expect.stringContaining(mockConfirmEmailJobData.city),
+        html: expect.stringContaining(mockConfirmEmailJobData.city),
       });
 
       expect(
