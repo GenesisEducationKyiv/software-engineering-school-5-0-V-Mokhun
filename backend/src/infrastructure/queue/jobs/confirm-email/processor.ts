@@ -1,6 +1,7 @@
 import { Job } from "bullmq";
 import { JobProcessor } from "../../types";
 import { ConfirmEmailJobData } from "./types";
+import { confirmEmailTemplate } from "../../../email";
 import {
   IEmailService,
   ISubscriptionRepository,
@@ -25,10 +26,10 @@ export class ConfirmEmailProcessor
     let subscriptionLookedUp = false;
 
     try {
-      await this.emailService.sendConfirmationEmail({
+      await this.emailService.send({
         to: email,
-        city,
-        confirmToken,
+        subject: `Confirm your weather subscription for ${city}`,
+        html: confirmEmailTemplate(city, confirmToken),
       });
 
       subscription = await this.subscriptionRepo.findSubscriptionByEmailAndCity(

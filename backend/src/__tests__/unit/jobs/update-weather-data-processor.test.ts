@@ -9,7 +9,7 @@ import {
   mockUpdateWeatherDataJobData,
   mockWeatherData,
 } from "@/__tests__/mocks";
-import { JOB_TYPES, QUEUE_TYPES } from "@/constants";
+import { JOB_TYPES, QUEUE_TYPES } from "@/infrastructure/queue/constants";
 import { UpdateWeatherDataProcessor } from "@/infrastructure/queue/jobs/update-weather-data/processor";
 import { UpdateWeatherDataJobData } from "@/infrastructure/queue/jobs/update-weather-data/types";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
@@ -135,9 +135,7 @@ describe("UpdateWeatherDataProcessor", () => {
       const errorMessage = "Queue service error";
       const error = new Error(errorMessage);
 
-      mockSubscriptionRepo.findById.mockResolvedValue(
-        mockConfirmedSubscription
-      );
+      mockSubscriptionRepo.findById.mockResolvedValue(mockConfirmedSubscription);
       mockWeatherProvider.getWeatherData.mockResolvedValue(mockWeatherData);
       mockQueueService.add.mockRejectedValue(error);
 

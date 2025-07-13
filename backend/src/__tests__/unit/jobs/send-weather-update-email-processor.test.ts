@@ -37,11 +37,12 @@ describe("SendWeatherUpdateEmailProcessor", () => {
 
       await processor.handle(job);
 
-      expect(mockEmailService.sendWeatherUpdateEmail).toHaveBeenCalledWith({
+      expect(mockEmailService.send).toHaveBeenCalledWith({
         to: mockSendWeatherUpdateEmailJobData.email,
-        city: mockSendWeatherUpdateEmailJobData.city,
-        weatherData: mockSendWeatherUpdateEmailJobData.weatherData,
-        unsubscribeToken: mockSendWeatherUpdateEmailJobData.unsubscribeToken,
+        subject: expect.stringContaining(
+          mockSendWeatherUpdateEmailJobData.city
+        ),
+        html: expect.stringContaining(mockSendWeatherUpdateEmailJobData.city),
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
@@ -66,7 +67,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
 
       await processor.handle(job);
 
-      expect(mockEmailService.sendWeatherUpdateEmail).not.toHaveBeenCalled();
+      expect(mockEmailService.send).not.toHaveBeenCalled();
       expect(mockEmailLogRepo.create).not.toHaveBeenCalled();
       expect(mockSubscriptionRepo.updateLastSentAt).not.toHaveBeenCalled();
     });
@@ -79,18 +80,17 @@ describe("SendWeatherUpdateEmailProcessor", () => {
       const errorMessage = "Email service error";
       const emailError = new Error(errorMessage);
 
-      mockEmailService.sendWeatherUpdateEmail.mockRejectedValue(emailError);
+      mockEmailService.send.mockRejectedValue(emailError);
 
       await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
-      expect(mockEmailService.sendWeatherUpdateEmail).toHaveBeenCalledWith(
-        {
-          to: mockSendWeatherUpdateEmailJobData.email,
-          city: mockSendWeatherUpdateEmailJobData.city,
-          weatherData: mockSendWeatherUpdateEmailJobData.weatherData,
-          unsubscribeToken: mockSendWeatherUpdateEmailJobData.unsubscribeToken,
-        }
-      );
+      expect(mockEmailService.send).toHaveBeenCalledWith({
+        to: mockSendWeatherUpdateEmailJobData.email,
+        subject: expect.stringContaining(
+          mockSendWeatherUpdateEmailJobData.city
+        ),
+        html: expect.stringContaining(mockSendWeatherUpdateEmailJobData.city),
+      });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
         subscriptionId: mockSendWeatherUpdateEmailJobData.subscriptionId,
@@ -110,7 +110,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
       );
       const unknownError = "String error";
 
-      mockEmailService.sendWeatherUpdateEmail.mockRejectedValue(unknownError);
+      mockEmailService.send.mockRejectedValue(unknownError);
 
       await expect(processor.handle(job)).rejects.toBe(unknownError);
 
@@ -137,14 +137,13 @@ describe("SendWeatherUpdateEmailProcessor", () => {
 
       await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
-      expect(mockEmailService.sendWeatherUpdateEmail).toHaveBeenCalledWith(
-        {
-          to: mockSendWeatherUpdateEmailJobData.email,
-          city: mockSendWeatherUpdateEmailJobData.city,
-          weatherData: mockSendWeatherUpdateEmailJobData.weatherData,
-          unsubscribeToken: mockSendWeatherUpdateEmailJobData.unsubscribeToken,
-        }
-      );
+      expect(mockEmailService.send).toHaveBeenCalledWith({
+        to: mockSendWeatherUpdateEmailJobData.email,
+        subject: expect.stringContaining(
+          mockSendWeatherUpdateEmailJobData.city
+        ),
+        html: expect.stringContaining(mockSendWeatherUpdateEmailJobData.city),
+      });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledTimes(2);
 
@@ -179,11 +178,12 @@ describe("SendWeatherUpdateEmailProcessor", () => {
 
       await expect(processor.handle(job)).rejects.toThrow(errorMessage);
 
-      expect(mockEmailService.sendWeatherUpdateEmail).toHaveBeenCalledWith({
+      expect(mockEmailService.send).toHaveBeenCalledWith({
         to: mockSendWeatherUpdateEmailJobData.email,
-        city: mockSendWeatherUpdateEmailJobData.city,
-        weatherData: mockSendWeatherUpdateEmailJobData.weatherData,
-        unsubscribeToken: mockSendWeatherUpdateEmailJobData.unsubscribeToken,
+        subject: expect.stringContaining(
+          mockSendWeatherUpdateEmailJobData.city
+        ),
+        html: expect.stringContaining(mockSendWeatherUpdateEmailJobData.city),
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({

@@ -1,6 +1,6 @@
 import { bodyValidator, paramValidator } from "@/middleware";
 import { Router } from "express";
-import { SubscriptionController } from "./subscription.controller";
+import { createSubscriptionController } from "./subscription.factory";
 import {
   ConfirmSubscriptionParamsSchema,
   SubscribeBodySchema,
@@ -11,35 +11,39 @@ import {
   SubscribeRequest,
   UnsubscribeRequest,
 } from "./subscription.types";
+import { getLogger } from "@/shared/logger";
+import { getDb } from "@/db";
 
-const createSubscriptionRouter = (controller: SubscriptionController) => {
-  const router = Router();
+const router = Router();
 
-  router.get(
-    "/confirm/:token",
-    paramValidator(ConfirmSubscriptionParamsSchema),
-    (req, res, next) =>
-      controller.confirmSubscription(
-        req as ConfirmSubscriptionRequest,
-        res,
-        next
-      )
-  );
+const controller = createSubscriptionController({
+  logger: getLogger(),
+  db: getDb(),
+});
 
-  router.get(
-    "/unsubscribe/:token",
-    paramValidator(UnsubscribeParamsSchema),
-    (req, res, next) =>
-      controller.unsubscribe(req as UnsubscribeRequest, res, next)
-  );
+router.get(
+  "/confirm/:token",
+  paramValidator(ConfirmSubscriptionParamsSchema),
+  (req, res, next) =>
+    controller.confirmSubscription(
+      req as ConfirmSubscriptionRequest,
+      res,
+      next
+    )
+);
 
-  router.post(
-    "/subscribe",
-    bodyValidator(SubscribeBodySchema),
-    (req, res, next) => controller.subscribe(req as SubscribeRequest, res, next)
-  );
+router.get(
+  "/unsubscribe/:token",
+  paramValidator(UnsubscribeParamsSchema),
+  (req, res, next) =>
+    controller.unsubscribe(req as UnsubscribeRequest, res, next)
+);
 
-  return router;
-};
+router.post(
+  "/subscribe",
+  bodyValidator(SubscribeBodySchema),
+  (req, res, next) =>
+    controller.subscribe(req as SubscribeRequest, res, next)
+);
 
-export { createSubscriptionRouter };
+export { router as subscriptionRouter };

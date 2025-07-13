@@ -1,15 +1,25 @@
+import { env } from "@/config";
+import { getDb } from "@/db";
 import { queryValidator } from "@/middleware";
+import { FileLogger, getLogger } from "@/shared/logger";
 import { Router } from "express";
+import { createWeatherController } from "./weather.factory";
 import { GetWeatherQuerySchema } from "./weather.schema";
 import { GetWeatherRequest } from "./weather.types";
-import { WeatherController } from "./weather.controller";
+import { MetricsFactory } from "@/infrastructure/metrics";
 
-export const createWeatherRouter = (controller: WeatherController) => {
-  const router = Router();
+const router = Router();
 
-  router.get("/", queryValidator(GetWeatherQuerySchema), (req, res, next) =>
-    controller.getWeather(req as GetWeatherRequest, res, next)
-  );
+const controller = createWeatherController({
+  db: getDb(),
+  logger: new FileLogger(env.LOG_FILE_PATH),
+  providersLogger: getLogger(),
+  apiKey: env.WEATHER_API_KEY,
+  metrics: MetricsFactory.create(),
+});
 
-  return router;
-};
+router.get("/", queryValidator(GetWeatherQuerySchema), (req, res, next) =>
+  controller.getWeather(req as GetWeatherRequest, res, next)
+);
+
+export { router as weatherRouter };

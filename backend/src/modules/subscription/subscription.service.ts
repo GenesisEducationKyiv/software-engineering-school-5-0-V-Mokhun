@@ -5,7 +5,7 @@ import { FREQUENCY_MAP, SubscribeBody } from "./subscription.schema";
 import { ISubscriptionService } from "./subscription.controller";
 import { IQueueService, ISubscriptionRepository } from "@/shared/ports";
 import { NotFoundException } from "@/shared";
-import { JOB_TYPES, QUEUE_TYPES } from "@/constants";
+import { JOB_TYPES, QUEUE_TYPES } from "@/infrastructure/queue";
 import { FREQUENCY_TO_CRON } from "@/constants";
 
 export class SubscriptionService implements ISubscriptionService {
