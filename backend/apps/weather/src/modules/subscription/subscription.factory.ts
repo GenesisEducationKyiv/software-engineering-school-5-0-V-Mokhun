@@ -1,13 +1,13 @@
-import { createQueueService } from "@/infrastructure/queue/queue.factory";
-import { SubscriptionRepository } from "@/infrastructure/repositories/subscription.repository";
-import { ILogger } from "@/shared/logger";
-import { IDatabase } from "@/shared/ports/database.port";
+import { createQueueService } from "@common/infrastructure/queue/queue.factory";
+import { ILogger } from "@logger/logger.interface";
+import { IDatabase } from "@common/shared/ports";
+import { SubscriptionRepository } from "@common/infrastructure/repositories/subscription.repository";
 import { SubscriptionController } from "./subscription.controller";
 import { SubscriptionService } from "./subscription.service";
 
 export function createSubscriptionController({
   logger,
-  db
+  db,
 }: {
   logger: ILogger;
   db: IDatabase;

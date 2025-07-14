@@ -1,41 +1,77 @@
+# apps/weather/Dockerfile
+
+# --- 1. Base Stage ---
+# Defines the base image and working directory.
 FROM node:22-bookworm AS base
 WORKDIR /app
 
-FROM base AS installer
+# --- 2. Dependencies Stage ---
+# Installs ALL dependencies for the entire monorepo.
+# This layer is cached and only re-runs if the root package.json or lockfile changes.
+FROM base AS deps
 COPY package.json package-lock.json ./
-RUN npm install
+# We need all package.json files for npm to correctly install workspace dependencies.
+# A simple glob copy is the most maintainable approach.
+COPY packages/*/package.json ./packages/*/
+COPY apps/*/package.json ./apps/*/
+RUN npm ci
 
+# --- 3. Builder Stage ---
+# Builds the specific application and its dependencies.
 FROM base AS builder
-COPY --from=installer /app/node_modules ./node_modules
-COPY . .
-RUN npm install
+# Copy all dependencies from the previous stage.
+COPY --from=deps /app/node_modules ./node_modules
+# Copy all necessary configuration files.
+COPY package.json package-lock.json ./
+COPY tsconfig.json tsconfig.base.json ./
+COPY prisma ./prisma/
+
+# Copy the source code for the app and ONLY the packages it depends on.
+# This improves caching significantly.
+COPY apps/weather ./apps/weather/
+COPY packages/common ./packages/common/
+COPY packages/logger ./packages/logger/
+
+# Generate Prisma client which is a build-time dependency.
 RUN npm run db:generate
+
+# Build the entire monorepo. `tsc --build` handles the dependency order.
 RUN npm run build
 
-FROM base AS migrator
-COPY --from=installer /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
-COPY package.json .
-RUN npm install
-RUN npm run db:generate
+# --- 4. Production Dependencies Stage ---
+# Creates a clean installation of only production dependencies.
+FROM base AS production-deps
+COPY package.json package-lock.json ./
+COPY packages/*/package.json ./packages/*/
+COPY apps/*/package.json ./apps/*/
+RUN npm ci --omit=dev
 
+# --- 5. Final Runner Stage ---
+# Creates the final, lean image for running the application.
 FROM base AS runner
 RUN apt-get update && apt-get install -y netcat-traditional && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=migrator /app/prisma ./prisma
+# Copy the specific build artifacts for the 'weather' app.
+COPY --from=builder /app/dist/apps/weather ./dist
+# Copy the lean, production-only node_modules.
+COPY --from=production-deps /app/node_modules ./node_modules
+# Copy Prisma schema and package.json, which are needed at runtime.
+COPY --from=builder /app/prisma ./prisma
 COPY package.json .
+# Also copy the app's package.json, it might be useful for context.
+COPY apps/weather/package.json ./
 
+# Create a non-root user for security.
 RUN addgroup --system --gid 1001 expressjs
 RUN adduser --system --uid 1001 expressjs
-
 RUN chown -R expressjs:expressjs /app
-
 USER expressjs
 
-COPY --chown=expressjs:expressjs docker-entrypoint.sh /app/
+# Copy and set up the entrypoint script, which is specific to this app.
+COPY --chown=expressjs:expressjs apps/weather/docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
+
+# The final command to run the 'weather' service.
 CMD ["node", "dist/index.js"]

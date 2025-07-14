@@ -1,7 +1,7 @@
 import { http, HttpResponse, passthrough } from "msw";
-import { WeatherData } from "@/shared/ports";
-import { OpenMeteoGeocodingResponse } from "@/infrastructure/weather";
-import { mapWeatherCodeToDescription } from "@/infrastructure/weather/mappers";
+import { WeatherData } from "@common/shared/ports";
+import { OpenMeteoGeocodingResponse } from "@common/infrastructure/weather";
+import { mapWeatherCodeToDescription } from "@common/infrastructure/weather/mappers";
 
 export const mockWeatherApiSuccessResponse = {
   current: {

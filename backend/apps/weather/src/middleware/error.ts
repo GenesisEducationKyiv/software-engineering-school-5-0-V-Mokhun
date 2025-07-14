@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { HttpException, ServerErrorException } from "@/shared";
-import { getLogger } from "@/shared/logger/logger.factory";
-import { env } from "@/config";
+import { HttpException, ServerErrorException } from "@common/shared";
+import { getLogger } from "@logger/logger.factory";
+import { env } from "@common/config";
 
 function hasStatus(error: unknown): error is { status: number } {
   return Boolean(

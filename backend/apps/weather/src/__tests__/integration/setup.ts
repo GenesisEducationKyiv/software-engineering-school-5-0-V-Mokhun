@@ -5,14 +5,14 @@ import {
   beforeEach,
   jest,
 } from "@jest/globals";
-import { closeDb, connectDb, resetDb } from "@/db";
-import { JobManager } from "@/infrastructure/queue";
+import { closeDb, connectDb, resetDb } from "@common/db";
+import { JobManager } from "@common/infrastructure/queue";
 import {
   clearQueues,
   closeQueues,
   pauseQueues,
-} from "@/infrastructure/queue/queues";
-import { getLogger } from "@/shared/logger/logger.factory";
+} from "@common/infrastructure/queue/queues";
+import { getLogger } from "@logger/logger.factory";
 import { mockEmailService } from "../mocks/email.service";
 import { server } from "../mocks/node";
 import { createEmailService } from "@/infrastructure/email/email.factory";

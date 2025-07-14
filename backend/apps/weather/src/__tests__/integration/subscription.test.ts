@@ -1,8 +1,8 @@
 import { app } from "@/app";
-import { FREQUENCY_TO_CRON, QUEUE_TYPES } from "@/constants";
-import { db } from "@/db";
-import { allQueues } from "@/infrastructure/queue/queues";
-import { SubscriptionCreate } from "@/shared/ports";
+import { FREQUENCY_TO_CRON, QUEUE_TYPES } from "@common/constants";
+import { db } from "@common/db";
+import { allQueues } from "@common/infrastructure/queue/queues";
+import { SubscriptionCreate } from "@common/shared/ports";
 import { describe, expect, it } from "@jest/globals";
 import { Queue } from "bullmq";
 import { StatusCodes } from "http-status-codes";

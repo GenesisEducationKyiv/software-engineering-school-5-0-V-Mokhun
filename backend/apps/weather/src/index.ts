@@ -1,8 +1,7 @@
 import { app } from "./app";
-import { env } from "./config";
-import { connectDb } from "./db";
-import { JobManager, workers } from "./infrastructure/queue";
-import { getLogger } from "./shared/logger/logger.factory";
+import { env } from "@common/config";
+import { connectDb } from "@common/db";
+import { getLogger } from "@logger/logger.factory";
 
 async function startServer() {
   const logger = getLogger();
@@ -13,15 +12,10 @@ async function startServer() {
     });
     await connectDb();
 
-    const jobManager = new JobManager(workers, logger);
-    jobManager.initializeWorkers();
-
     const shutdown = async () => {
       server.close(() => {
         logger.info("Server shutdown");
       });
-
-      await jobManager.stopWorkers();
 
       process.exit(0);
     };

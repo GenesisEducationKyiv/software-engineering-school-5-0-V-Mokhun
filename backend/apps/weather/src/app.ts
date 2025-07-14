@@ -3,8 +3,8 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-import { env } from "./config";
-import { getDb } from "./db";
+import { env } from "@common/config";
+import { getDb } from "@common/db";
 import { MetricsFactory } from "./infrastructure/metrics";
 import { errorMiddleware } from "./middleware";
 import {
@@ -13,7 +13,8 @@ import {
   createWeatherController,
   createWeatherRouter,
 } from "./modules";
-import { FileLogger, getLogger } from "./shared/logger";
+import { getLogger } from "@logger/logger.factory";
+import { FileLogger } from "@logger/file.logger";
 
 export const app = express();
 
@@ -38,7 +39,7 @@ app.get("/metrics", async (_req, res) => {
 
 const weatherController = createWeatherController({
   db: getDb(),
-  logger: new FileLogger(env.LOG_FILE_PATH),
+  logger: new FileLogger(env.LOG_LEVEL, env.LOG_FILE_PATH),
   providersLogger: getLogger(),
   apiKey: env.WEATHER_API_KEY,
   metrics: metricsService,

@@ -1,11 +1,11 @@
-import { CACHE_THRESHOLD } from "@/constants";
+import { CACHE_THRESHOLD } from "@common/constants";
 import { IWeatherService } from "./weather.controller";
+import { IMetricsService } from "@/shared/ports";
 import {
-  IMetricsService,
   IWeatherProvider,
   IWeatherRepository,
   WeatherData,
-} from "@/shared/ports";
+} from "@common/shared/ports";
 
 export class WeatherService implements IWeatherService {
   constructor(

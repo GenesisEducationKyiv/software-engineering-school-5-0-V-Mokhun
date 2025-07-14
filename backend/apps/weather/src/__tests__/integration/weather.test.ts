@@ -1,6 +1,6 @@
 import { app } from "@/app";
-import { CACHE_THRESHOLD } from "@/constants";
-import { db } from "@/db";
+import { CACHE_THRESHOLD } from "@common/constants";
+import { db } from "@common/db";
 import { GetWeatherQuery } from "@/modules/weather/weather.schema";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { WeatherCache } from "@prisma/client";

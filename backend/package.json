@@ -1,8 +1,15 @@
 {
   "name": "backend",
+  "private": true,
   "version": "1.0.0",
   "main": "index.js",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
+    "clean": "npm run clean -ws --if-present",
+    "build": "tsc --build",
     "db:generate": "npx prisma generate",
     "db:migrate": "npx prisma migrate dev",
     "db:migrate-local": "dotenv -e .env -- sh -c 'DATABASE_URL=\"$DATABASE_URL_EXTERNAL\" npx prisma migrate dev'",

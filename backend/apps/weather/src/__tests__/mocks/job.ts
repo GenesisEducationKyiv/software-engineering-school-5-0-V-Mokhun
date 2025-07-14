@@ -2,7 +2,7 @@ import {
   ConfirmEmailJobData,
   SendWeatherUpdateEmailJobData,
   UpdateWeatherDataJobData,
-} from "@/infrastructure/queue/jobs";
+} from "@common/infrastructure/queue/jobs";
 import { Job } from "bullmq";
 import { mockWeatherData } from "./weather";
 
