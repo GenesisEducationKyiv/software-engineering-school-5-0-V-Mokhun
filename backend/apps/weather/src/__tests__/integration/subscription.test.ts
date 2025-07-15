@@ -1,21 +1,16 @@
 import { app } from "@/app";
-import { FREQUENCY_TO_CRON, QUEUE_TYPES } from "@common/constants";
+import { FREQUENCY_TO_CRON, JOB_TYPES, QUEUE_TYPES } from "@common/constants";
 import { db } from "@common/db";
-import { allQueues } from "@common/infrastructure/queue/queues";
 import { SubscriptionCreate } from "@common/shared/ports";
-import { describe, expect, it } from "@jest/globals";
-import { Queue } from "bullmq";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StatusCodes } from "http-status-codes";
 import request from "supertest";
-import { mockSubscription } from "../mocks";
+import { mockQueueService, mockSubscription } from "../mocks";
 
 describe("Subscription Endpoints", () => {
-  const confirmEmailQueue = allQueues.find(
-    (q) => q.name === QUEUE_TYPES.CONFIRM_EMAIL
-  ) as Queue;
-  const updateWeatherDataQueue = allQueues.find(
-    (q) => q.name === QUEUE_TYPES.UPDATE_WEATHER_DATA
-  ) as Queue;
+  beforeEach(async () => {
+    jest.resetAllMocks();
+  });
 
   const createSubscription = async (data: Partial<SubscriptionCreate> = {}) => {
     const subscription = await db.subscription.create({
@@ -49,12 +44,21 @@ describe("Subscription Endpoints", () => {
       expect(subscription?.confirmed).toBeFalsy();
       expect(subscription?.confirmToken).toBeTruthy();
 
-      const jobs = await confirmEmailQueue.getJobs();
-      const [job] = jobs;
-      expect(job).toBeTruthy();
-      expect(job?.data?.email).toBe(subscription?.email);
-      expect(job?.data?.city).toBe(subscription?.city);
-      expect(job?.data?.confirmToken).toBe(subscription?.confirmToken);
+      expect(mockQueueService.add).toHaveBeenCalledWith(
+        QUEUE_TYPES.CONFIRM_EMAIL,
+        JOB_TYPES.CONFIRM_EMAIL,
+        {
+          email: subscription?.email,
+          city: subscription?.city,
+          confirmToken: subscription?.confirmToken,
+        }
+      );
+      // const jobs = await confirmEmailQueue.getJobs();
+      // const [job] = jobs;
+      // expect(job).toBeTruthy();
+      // expect(job?.data?.email).toBe(subscription?.email);
+      // expect(job?.data?.city).toBe(subscription?.city);
+      // expect(job?.data?.confirmToken).toBe(subscription?.confirmToken);
     });
 
     it("should return 409 if email is already subscribed", async () => {
@@ -90,12 +94,12 @@ describe("Subscription Endpoints", () => {
       expect(confirmedSubscription?.confirmed).toBeTruthy();
       expect(confirmedSubscription?.confirmToken).toBeNull();
 
-      const jobs = await updateWeatherDataQueue.getJobSchedulers();
-      const [scheduler] = jobs;
-      expect(scheduler).toBeTruthy();
-      expect(scheduler?.key).toBe(`sub-${subscription.id}`);
-      expect(scheduler?.pattern).toBe(
-        FREQUENCY_TO_CRON[subscription.frequency]
+      expect(mockQueueService.schedule).toHaveBeenCalledWith(
+        QUEUE_TYPES.UPDATE_WEATHER_DATA,
+        `sub-${subscription.id}`,
+        FREQUENCY_TO_CRON[subscription.frequency],
+        QUEUE_TYPES.UPDATE_WEATHER_DATA,
+        { city: subscription.city }
       );
     });
 
@@ -120,7 +124,6 @@ describe("Subscription Endpoints", () => {
   });
 
   describe("GET /api/unsubscribe/:token", () => {
-    //? Tried to also test for removal of the job scheduler, but it's not working at all, something wrong with bullmq's removeJobScheduler
     it("should unsubscribe a subscription", async () => {
       const subscription = await createSubscription({
         confirmed: true,
@@ -137,6 +140,10 @@ describe("Subscription Endpoints", () => {
         },
       });
       expect(deletedSubscription).toBeNull();
+      expect(mockQueueService.removeSchedule).toHaveBeenCalledWith(
+        QUEUE_TYPES.UPDATE_WEATHER_DATA,
+        `sub-${subscription.id}`
+      );
     });
 
     it("should return 404 if unsubscribe token is invalid", async () => {

@@ -2,8 +2,8 @@ import {
   IWeatherProvider,
   WeatherData,
   weatherDataSchema,
-} from "@/shared/ports";
-import { HttpException, ServerErrorException } from "@/shared";
+} from "@common/shared/ports";
+import { HttpException, ServerErrorException } from "@common/shared";
 import { ILogger } from "@logger/logger.interface";
 
 export class WeatherApiProvider implements IWeatherProvider {

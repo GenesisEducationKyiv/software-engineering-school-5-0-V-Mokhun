@@ -1,4 +1,4 @@
-import { WeatherData } from "@/shared/ports";
+import { WeatherData } from "@common/shared/ports";
 
 export const SEND_WEATHER_UPDATE_EMAIL_JOB = "send-weather-update-email";
 
@@ -8,4 +8,4 @@ export interface SendWeatherUpdateEmailJobData {
   city: string;
   unsubscribeToken: string;
   weatherData: WeatherData;
-} 
+}

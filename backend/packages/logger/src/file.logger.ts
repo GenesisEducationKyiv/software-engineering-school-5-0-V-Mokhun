@@ -11,9 +11,9 @@ export class FileLogger implements ILogger {
     logDir: string = "log"
   ) {
     this.logLevel = logLevel;
-    const logPath = path.resolve(process.cwd(), logDir);
+    const logPath = path.resolve(process.cwd(), "..", "..", logDir);
     if (!fs.existsSync(logPath)) {
-      fs.mkdirSync(logPath);
+      fs.mkdirSync(logPath, { recursive: true });
     }
     this.logFilePath = path.join(logPath, "app.log");
   }

@@ -1,6 +1,6 @@
 import { Queue } from "bullmq";
 import { defaultQueueOptions } from "./queue.config";
-import { QUEUE_TYPES } from "@/constants";
+import { QUEUE_TYPES } from "@common/constants";
 import { ConfirmEmailJobData } from "./jobs/confirm-email/types";
 import { SendWeatherUpdateEmailJobData } from "./jobs/send-weather-update-email/types";
 import { UpdateWeatherDataJobData } from "./jobs/update-weather-data/types";

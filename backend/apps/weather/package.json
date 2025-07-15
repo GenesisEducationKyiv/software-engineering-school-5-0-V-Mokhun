@@ -1,9 +1,12 @@
 {
   "name": "weather",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && tsc-alias",
+    "build": "npm run compile && npm run resolve-paths",
+    "compile": "tsc",
+    "resolve-paths": "tsc-alias",
     "start": "node dist/index.js",
     "dev": "dotenv -e ../../.env.development -- nodemon --watch 'src/**/*.ts' --exec 'ts-node -r tsconfig-paths/register' src/index.ts",
     "lint": "eslint 'src/**/*.ts'",
@@ -11,10 +14,10 @@
     "type-check": "tsc --noEmit",
     "test": "npm run test:unit && npm run test:integration:ci",
     "test:unit": "cross-env NODE_ENV=test jest --config jest.unit.config.js --silent --runInBand",
-    "test:integration": "dotenv -e ../../.env.test -- sh -c 'npm run db:migrate-test && jest --config jest.integ.config.js --runInBand --silent'",
+    "test:integration": "dotenv -e ../../.env.test -- sh -c 'npm run db:migrate-test && jest --config jest.integ.config.js --runInBand'",
     "test:integration:ci": "bash ./scripts/run-integration-tests.sh",
     "test:arch": "dependency-cruise --config .dependency-cruiser.js src",
-    "db:generate": "npx prisma generate",
+    "db:generate": "prisma generate",
     "db:migrate-test": "dotenv -e ../../.env.test -- sh -c 'DATABASE_URL=\"$DATABASE_URL_EXTERNAL\" npx prisma migrate reset --force'"
   },
   "prisma": {

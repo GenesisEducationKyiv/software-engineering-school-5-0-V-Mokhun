@@ -1,5 +1,5 @@
 import { WeatherCache } from "@prisma/client";
-import { IDatabase, IWeatherRepository, WeatherData } from "@/shared/ports";
+import { IDatabase, IWeatherRepository, WeatherData } from "@common/shared/ports";
 
 export class WeatherRepository implements IWeatherRepository {
   constructor(private readonly db: IDatabase) {}

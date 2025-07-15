@@ -14,7 +14,7 @@ COPY package.json package-lock.json ./
 # A simple glob copy is the most maintainable approach.
 COPY packages/*/package.json ./packages/*/
 COPY apps/*/package.json ./apps/*/
-RUN npm ci
+RUN npm install
 
 # --- 3. Builder Stage ---
 # Builds the specific application and its dependencies.
@@ -35,8 +35,8 @@ COPY packages/logger ./packages/logger/
 # Generate Prisma client which is a build-time dependency.
 RUN npm run db:generate
 
-# Build the entire monorepo. `tsc --build` handles the dependency order.
-RUN npm run build
+# Build the specific app and its dependencies. `tsc --build` handles the dependency order.
+RUN npm run build --workspace=apps/weather
 
 # --- 4. Production Dependencies Stage ---
 # Creates a clean installation of only production dependencies.
@@ -44,7 +44,7 @@ FROM base AS production-deps
 COPY package.json package-lock.json ./
 COPY packages/*/package.json ./packages/*/
 COPY apps/*/package.json ./apps/*/
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # --- 5. Final Runner Stage ---
 # Creates the final, lean image for running the application.
@@ -52,7 +52,7 @@ FROM base AS runner
 RUN apt-get update && apt-get install -y netcat-traditional && rm -rf /var/lib/apt/lists/*
 
 # Copy the specific build artifacts for the 'weather' app.
-COPY --from=builder /app/dist/apps/weather ./dist
+COPY --from=builder /app/apps/weather/dist ./dist
 # Copy the lean, production-only node_modules.
 COPY --from=production-deps /app/node_modules ./node_modules
 # Copy Prisma schema and package.json, which are needed at runtime.

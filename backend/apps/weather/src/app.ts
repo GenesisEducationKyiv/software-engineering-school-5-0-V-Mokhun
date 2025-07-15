@@ -12,7 +12,7 @@ import {
   createSubscriptionRouter,
   createWeatherController,
   createWeatherRouter,
-} from "./modules";
+} from "@/modules";
 import { getLogger } from "@logger/logger.factory";
 import { FileLogger } from "@logger/file.logger";
 

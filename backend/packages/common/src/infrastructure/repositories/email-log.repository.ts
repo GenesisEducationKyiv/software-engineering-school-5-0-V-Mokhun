@@ -2,7 +2,7 @@ import {
   EmailLogCreateInput,
   IDatabase,
   IEmailLogRepository,
-} from "@/shared/ports";
+} from "@common/shared/ports";
 
 export class EmailLogRepository implements IEmailLogRepository {
   constructor(private readonly db: IDatabase) {}

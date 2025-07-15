@@ -2,16 +2,18 @@
   "name": "backend",
   "private": true,
   "version": "1.0.0",
-  "main": "index.js",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "clean": "npm run clean -ws --if-present",
-    "build": "tsc --build",
-    "db:generate": "npx prisma generate",
-    "db:migrate": "npx prisma migrate dev",
+    "clean": "find . -name 'dist' -type d -exec rm -rf {} + && find . -name 'tsconfig.tsbuildinfo' -type f -delete",
+    "build": "npm run compile && npm run resolve-paths",
+    "compile": "tsc --build",
+    "resolve-paths": "npm run resolve-paths --workspaces --if-present",
+    "type-check": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
     "db:migrate-local": "dotenv -e .env -- sh -c 'DATABASE_URL=\"$DATABASE_URL_EXTERNAL\" npx prisma migrate dev'",
     "db:migrate-local:dev": "dotenv -e .env.development -- sh -c 'DATABASE_URL=\"$DATABASE_URL_EXTERNAL\" npx prisma migrate dev'",
     "docker:run": "docker compose -f docker-compose.yml up -d",
@@ -20,8 +22,8 @@
     "docker:build:dev": "docker compose -f docker-compose.dev.yml build"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts",
-    "schema": "prisma/schema.prisma"
+    "schema": "prisma/schema.prisma",
+    "seed": "ts-node prisma/seed.ts"
   },
   "keywords": [],
   "author": "",

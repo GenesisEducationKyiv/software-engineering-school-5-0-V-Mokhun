@@ -1,4 +1,4 @@
-import { env } from "@/config";
+import { env } from "@common/config";
 import { RedisOptions } from "ioredis";
 
 export const createRootConfig = ({

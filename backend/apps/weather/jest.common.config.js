@@ -4,6 +4,8 @@ module.exports = {
   testEnvironment: "node",
   testMatch: ["**/*.test.ts"],
   moduleNameMapper: {
+    "^@common/(.*)$": "<rootDir>/../../packages/common/src/$1",
+    "^@logger/(.*)$": "<rootDir>/../../packages/logger/src/$1",
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   transform: {

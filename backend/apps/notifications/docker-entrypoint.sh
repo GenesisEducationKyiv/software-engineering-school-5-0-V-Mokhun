@@ -4,6 +4,8 @@ set -e
 # Determine database host based on environment
 DB_HOST=${DB_HOST:-db}
 DB_PORT=${DB_PORT:-5432}
+REDIS_HOST=${REDIS_HOST:-redis}
+REDIS_PORT=${REDIS_PORT:-6379}
 
 # Function to check if database is ready
 wait_for_db() {

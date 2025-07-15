@@ -1,5 +1,5 @@
 import { ILogger } from "@logger/logger.interface";
-import { IQueueService } from "@/shared/ports";
+import { IQueueService } from "@common/shared/ports";
 import { Queue } from "bullmq";
 
 export class BullMQService implements IQueueService {

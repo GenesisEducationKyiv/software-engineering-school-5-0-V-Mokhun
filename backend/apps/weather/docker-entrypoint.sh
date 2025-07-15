@@ -19,7 +19,7 @@ wait_for_db
 
 # Run migrations
 echo "Running database migrations..."
-npx prisma migrate deploy
+npx prisma migrate deploy --schema=./prisma/schema.prisma
 
 # Start the application
 echo "Starting application..."
