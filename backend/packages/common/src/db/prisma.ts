@@ -2,7 +2,7 @@ import { IDatabase } from "@common/shared/ports";
 import { env } from "@common/config";
 import { PrismaClient } from "@prisma/client";
 
-function createPrismaClient() {
+function createPrismaClient(): IDatabase {
   return new PrismaClient({
     log: env.NODE_ENV === "development" ? ["info", "warn", "error"] : ["error"],
   });
@@ -14,7 +14,7 @@ export function getDb(): IDatabase {
   if (!dbInstance) {
     dbInstance = createPrismaClient();
   }
-  return dbInstance;
+  return dbInstance as IDatabase;
 }
 
 export function overrideDb(client: IDatabase) {
@@ -28,7 +28,7 @@ export async function connectDb() {
   if (!dbInstance) {
     dbInstance = createPrismaClient();
   }
-  await dbInstance.$connect();
+  await (dbInstance as IDatabase).$connect();
 }
 
 export async function closeDb() {
@@ -44,9 +44,9 @@ export async function resetDb() {
   >`SELECT tablename FROM pg_tables WHERE schemaname='public'`;
 
   const tables = tablenames
-    .map(({ tablename }) => tablename)
-    .filter((name) => name !== "_prisma_migrations")
-    .map((name) => `"public"."${name}"`)
+    .map(({ tablename }: { tablename: string }) => tablename)
+    .filter((name: string) => name !== "_prisma_migrations")
+    .map((name: string) => `"public"."${name}"`)
     .join(", ");
 
   await getDb().$executeRawUnsafe(`TRUNCATE TABLE ${tables} CASCADE;`);

@@ -1,8 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
     "rootDir": "src",
+    "outDir": "../../dist/apps/notifications",
+    "tsBuildInfoFile": "../../dist/apps/notifications/.tsbuildinfo",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],

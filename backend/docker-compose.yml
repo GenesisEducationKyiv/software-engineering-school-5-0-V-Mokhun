@@ -46,8 +46,8 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
-    container_name: api
+  weather-service:
+    container_name: weather-service
     env_file:
       - .env
     ports:
@@ -63,10 +63,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["npm", "run", "start"]
 
-  notification-service:
-    container_name: notification-service
+  notifications-service:
+    container_name: notifications-service
     env_file:
       - .env
     networks:
@@ -80,7 +79,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["npm", "run", "start"]
 
   prometheus:
     container_name: prometheus

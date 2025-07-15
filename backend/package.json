@@ -8,9 +8,7 @@
   ],
   "scripts": {
     "clean": "find . -name 'dist' -type d -exec rm -rf {} + && find . -name 'tsconfig.tsbuildinfo' -type f -delete",
-    "build": "npm run compile && npm run resolve-paths",
-    "compile": "tsc --build",
-    "resolve-paths": "npm run resolve-paths --workspaces --if-present",
+    "build": "tspc --build",
     "type-check": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -41,7 +39,10 @@
     "eslint": "^9.26.0",
     "prisma": "6.5.0",
     "ts-node": "^10.9.2",
+    "ts-patch": "^3.3.0",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.32.1"
+    "typescript-eslint": "^8.32.1",
+    "typescript-transform-paths": "^3.5.5"
   }
 }

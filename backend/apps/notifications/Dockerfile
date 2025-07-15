@@ -1,4 +1,4 @@
-# apps/weather/Dockerfile
+# apps/notifications/Dockerfile
 
 # --- 1. Base Stage ---
 # Defines the base image and working directory.
@@ -26,17 +26,41 @@ COPY package.json package-lock.json ./
 COPY tsconfig.json tsconfig.base.json ./
 COPY prisma ./prisma/
 
-# Copy the source code for the app and ONLY the packages it depends on.
-# This improves caching significantly.
-COPY apps/notifications ./apps/notifications/
-COPY packages/common ./packages/common/
-COPY packages/logger ./packages/logger/
+# Copy all source code for all apps and packages.
+# This is necessary for the root `tsc --build` to succeed.
+COPY apps ./apps/
+COPY packages ./packages/
 
 # Generate Prisma client which is a build-time dependency.
 RUN npm run db:generate
 
-# Build the specific app and its dependencies. `tsc --build` handles the dependency order.
-RUN npm run build --workspace=apps/notifications
+# Build all dependencies and the app itself from the root.
+RUN npm run build
+
+# --- Development Stage ---
+# For development, we want all dependencies and live-reloading.
+FROM deps AS development
+
+RUN apt-get update && apt-get install -y netcat-traditional && rm -rf /var/lib/apt/lists/*
+# Copy root configurations. The apps/packages will be mounted via docker-compose.
+COPY tsconfig.json tsconfig.base.json ./
+
+# Create a non-root user for security.
+RUN addgroup --system --gid 1001 expressjs
+RUN adduser --system --uid 1001 expressjs
+
+RUN chown -R expressjs:expressjs /app
+
+USER expressjs
+
+# We still need the entrypoint script.
+COPY --chown=expressjs:expressjs apps/notifications/docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+# The default command will be overridden by docker-compose, but we set it for clarity.
+CMD ["npm", "run", "dev", "--workspace=apps/notifications"]
+
 
 # --- 4. Production Dependencies Stage ---
 # Creates a clean installation of only production dependencies.
@@ -51,10 +75,16 @@ RUN npm install --omit=dev
 FROM base AS runner
 RUN apt-get update && apt-get install -y netcat-traditional && rm -rf /var/lib/apt/lists/*
 
-# Copy the specific build artifacts for the 'weather' app.
-COPY --from=builder /app/apps/notifications/dist ./dist
+# Copy the specific build artifacts for the 'notifications' app and its dependencies.
+COPY --from=builder /app/dist/apps/notifications ./dist/apps/notifications
+COPY --from=builder /app/dist/packages/common ./dist/packages/common
+COPY --from=builder /app/dist/packages/logger ./dist/packages/logger
+
 # Copy the lean, production-only node_modules.
 COPY --from=production-deps /app/node_modules ./node_modules
+# Copy the generated Prisma client from the builder stage.
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
 # Copy Prisma schema and package.json, which are needed at runtime.
 COPY --from=builder /app/prisma ./prisma
 COPY package.json .
@@ -74,4 +104,4 @@ RUN chmod +x /app/docker-entrypoint.sh
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # The final command to run the 'notifications' service.
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/apps/notifications/index.js"]

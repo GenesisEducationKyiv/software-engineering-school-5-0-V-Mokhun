@@ -4,9 +4,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npm run compile && npm run resolve-paths",
-    "compile": "tsc",
-    "resolve-paths": "tsc-alias"
+    "build": "tspc"
   },
   "keywords": [],
   "author": "",
@@ -30,7 +28,6 @@
     "eslint": "^9.26.0",
     "prisma": "6.5.0",
     "ts-node": "^10.9.2",
-    "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1"
