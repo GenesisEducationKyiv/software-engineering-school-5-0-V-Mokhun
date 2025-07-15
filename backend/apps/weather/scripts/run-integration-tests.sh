@@ -27,6 +27,6 @@ echo "--- Waiting for redis to be ready ---"
 ../../scripts/wait-until.sh "docker compose -f ${COMPOSE_FILE} exec -T redis-test redis-cli ping > /dev/null 2>&1"
 
 echo "--- Running integration tests ---"
-npm run test:integration
+npm run test:integration:local
 
 echo "--- Integration tests finished ---"

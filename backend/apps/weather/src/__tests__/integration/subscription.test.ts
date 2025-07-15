@@ -98,8 +98,8 @@ describe("Subscription Endpoints", () => {
         QUEUE_TYPES.UPDATE_WEATHER_DATA,
         `sub-${subscription.id}`,
         FREQUENCY_TO_CRON[subscription.frequency],
-        QUEUE_TYPES.UPDATE_WEATHER_DATA,
-        { city: subscription.city }
+        JOB_TYPES.UPDATE_WEATHER_DATA,
+        { subscriptionId: subscription.id }
       );
     });
 

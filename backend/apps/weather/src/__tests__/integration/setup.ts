@@ -1,17 +1,22 @@
 import { closeDb, connectDb, resetDb } from "@common/db";
 import {
-  clearQueues,
-  closeQueues,
-  pauseQueues,
-} from "@common/infrastructure/queue";
-import { afterAll, afterEach, beforeAll, beforeEach } from "@jest/globals";
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  jest,
+} from "@jest/globals";
 import { server } from "../mocks/node";
+import { mockQueueService } from "../mocks";
+
+jest.mock("@common/infrastructure/queue/queue.factory", () => ({
+  createQueueService: () => mockQueueService,
+}));
 
 beforeAll(async () => {
   server.listen({
     onUnhandledRequest: "error",
   });
-  await pauseQueues();
 });
 
 beforeEach(async () => {
@@ -22,10 +27,8 @@ beforeEach(async () => {
 afterEach(async () => {
   server.resetHandlers();
   await closeDb();
-  await clearQueues();
 });
 
 afterAll(async () => {
   server.close();
-  await closeQueues();
 });
