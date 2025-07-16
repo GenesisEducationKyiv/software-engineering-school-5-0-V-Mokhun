@@ -18,7 +18,12 @@ import { FileLogger } from "@logger/file.logger";
 
 export const app = express();
 
-app.use(morgan("combined"));
+if (env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+} else if (env.NODE_ENV === "production") {
+  app.use(morgan("combined"));
+}
+
 app.use(helmet());
 app.use(cors());
 app.use(compression());
