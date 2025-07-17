@@ -1,9 +1,6 @@
 import { Job } from "bullmq";
 import { JobProcessor } from "../../types";
-import {
-  SendWeatherUpdateEmailJobData,
-  WeatherData,
-} from "@common/generated/proto/job_pb";
+import { SendWeatherUpdateEmailJobData } from "@common/generated/proto/job_pb";
 import {
   IEmailService,
   ISubscriptionRepository,
