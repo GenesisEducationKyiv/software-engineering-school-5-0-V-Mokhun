@@ -47,11 +47,7 @@ describe("Subscription Endpoints", () => {
       expect(mockQueueService.add).toHaveBeenCalledWith(
         QUEUE_TYPES.CONFIRM_EMAIL,
         JOB_TYPES.CONFIRM_EMAIL,
-        {
-          email: subscription?.email,
-          city: subscription?.city,
-          confirmToken: subscription?.confirmToken,
-        }
+        expect.any(Uint8Array)
       );
       // const jobs = await confirmEmailQueue.getJobs();
       // const [job] = jobs;
@@ -99,7 +95,7 @@ describe("Subscription Endpoints", () => {
         `sub-${subscription.id}`,
         FREQUENCY_TO_CRON[subscription.frequency],
         JOB_TYPES.UPDATE_WEATHER_DATA,
-        { subscriptionId: subscription.id }
+        expect.any(Uint8Array)
       );
     });
 

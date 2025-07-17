@@ -1,6 +1,9 @@
 import { Job } from "bullmq";
 import { JobProcessor } from "../../types";
-import { SendWeatherUpdateEmailJobData } from "@common/infrastructure/queue";
+import {
+  SendWeatherUpdateEmailJobData,
+  WeatherData,
+} from "@common/generated/proto/job_pb";
 import {
   IEmailService,
   ISubscriptionRepository,
@@ -8,9 +11,7 @@ import {
 } from "@common/shared/ports";
 import { ILogger } from "@logger/logger.interface";
 
-export class SendWeatherUpdateEmailProcessor
-  implements JobProcessor<SendWeatherUpdateEmailJobData>
-{
+export class SendWeatherUpdateEmailProcessor implements JobProcessor {
   constructor(
     private readonly emailService: IEmailService,
     private readonly subscriptionRepo: ISubscriptionRepository,
@@ -18,9 +19,10 @@ export class SendWeatherUpdateEmailProcessor
     private readonly logger: ILogger
   ) {}
 
-  async handle(job: Job<SendWeatherUpdateEmailJobData>) {
+  async handle(job: Job<Uint8Array>) {
+    const jobData = SendWeatherUpdateEmailJobData.fromBinary(job.data);
     const { email, city, unsubscribeToken, weatherData, subscriptionId } =
-      job.data;
+      jobData;
 
     if (
       !email ||
@@ -33,14 +35,12 @@ export class SendWeatherUpdateEmailProcessor
     }
 
     try {
-      await this.emailService.sendWeatherUpdateEmail(
-        {
-          to: email,
-          city,
-          weatherData,
-          unsubscribeToken,
-        }
-      );
+      await this.emailService.sendWeatherUpdateEmail({
+        to: email,
+        city,
+        weatherData,
+        unsubscribeToken,
+      });
 
       await this.emailLogRepo.create({
         subscriptionId,
@@ -62,14 +62,17 @@ export class SendWeatherUpdateEmailProcessor
     }
   }
 
-  completed(job: Job<SendWeatherUpdateEmailJobData>) {
+  completed(job: Job<Uint8Array>) {
     this.logger.info("Weather update email job completed", { jobId: job.id });
   }
 
-  failed(job: Job<SendWeatherUpdateEmailJobData> | undefined, error: Error) {
+  failed(job: Job<Uint8Array> | undefined, error: Error) {
+    const jobData = job
+      ? SendWeatherUpdateEmailJobData.fromBinary(job.data)
+      : undefined;
     this.logger.error("Weather update email job failed", error, {
       jobId: job?.id,
-      jobData: job?.data,
+      jobData,
     });
   }
 }

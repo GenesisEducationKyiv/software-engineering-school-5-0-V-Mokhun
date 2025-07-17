@@ -7,6 +7,10 @@ import { IQueueService, ISubscriptionRepository } from "@common/shared/ports";
 import { NotFoundException } from "@common/shared";
 import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
 import { FREQUENCY_TO_CRON } from "@common/constants";
+import {
+  ConfirmEmailJobData,
+  UpdateWeatherDataJobData,
+} from "@common/generated/proto/job_pb";
 
 export class SubscriptionService implements ISubscriptionService {
   constructor(
@@ -34,10 +38,16 @@ export class SubscriptionService implements ISubscriptionService {
       confirmed: false,
     });
 
+    const jobData = new ConfirmEmailJobData({
+      email,
+      city,
+      confirmToken,
+    });
+
     await this.queueService.add(
       QUEUE_TYPES.CONFIRM_EMAIL,
       JOB_TYPES.CONFIRM_EMAIL,
-      { email, city, confirmToken }
+      Buffer.from(jobData.toBinary())
     );
 
     return { confirmToken, unsubscribeToken };
@@ -54,12 +64,15 @@ export class SubscriptionService implements ISubscriptionService {
 
     const cron = FREQUENCY_TO_CRON[subscription.frequency];
     const schedulerId = `sub-${subscription.id}`;
+    const jobData = new UpdateWeatherDataJobData({
+      subscriptionId: subscription.id,
+    });
     await this.queueService.schedule(
       QUEUE_TYPES.UPDATE_WEATHER_DATA,
       schedulerId,
       cron,
       JOB_TYPES.UPDATE_WEATHER_DATA,
-      { subscriptionId: subscription.id }
+      Buffer.from(jobData.toBinary())
     );
 
     return subscription;

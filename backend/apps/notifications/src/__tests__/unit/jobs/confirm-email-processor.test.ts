@@ -31,7 +31,10 @@ describe("ConfirmEmailProcessor", () => {
 
   describe("handle", () => {
     it("should send confirmation email and log success", async () => {
-      const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
+      const job = createMockJob(
+        mockConfirmEmailJobData.toBinary(),
+        "confirm-email"
+      );
 
       mockSubscriptionRepo.findSubscriptionByEmailAndCity.mockResolvedValue(
         mockSubscription
@@ -61,7 +64,10 @@ describe("ConfirmEmailProcessor", () => {
     });
 
     it("should handle email service error and log failure", async () => {
-      const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
+      const job = createMockJob(
+        mockConfirmEmailJobData.toBinary(),
+        "confirm-email"
+      );
       const errorMessage = "Email service error";
       const emailError = new Error(errorMessage);
 
@@ -95,7 +101,10 @@ describe("ConfirmEmailProcessor", () => {
     });
 
     it("should throw error when subscription not found after sending email", async () => {
-      const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
+      const job = createMockJob(
+        mockConfirmEmailJobData.toBinary(),
+        "confirm-email"
+      );
 
       mockSubscriptionRepo.findSubscriptionByEmailAndCity.mockResolvedValue(
         null
@@ -120,7 +129,10 @@ describe("ConfirmEmailProcessor", () => {
     });
 
     it("should handle unknown error type in error logging", async () => {
-      const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
+      const job = createMockJob(
+        mockConfirmEmailJobData.toBinary(),
+        "confirm-email"
+      );
       const unknownError = "String error";
 
       mockEmailService.sendConfirmationEmail.mockRejectedValue(unknownError);
@@ -140,7 +152,10 @@ describe("ConfirmEmailProcessor", () => {
     });
 
     it("should handle email log repository error during success path", async () => {
-      const job = createMockJob(mockConfirmEmailJobData, "confirm-email");
+      const job = createMockJob(
+        mockConfirmEmailJobData.toBinary(),
+        "confirm-email"
+      );
       const errorMessage = "Log repository error";
       const logError = new Error(errorMessage);
 
@@ -186,7 +201,7 @@ describe("ConfirmEmailProcessor", () => {
   describe("completed", () => {
     it("should log completion message", () => {
       const job = createMockJob(
-        mockConfirmEmailJobData,
+        mockConfirmEmailJobData.toBinary(),
         "confirm-email",
         "123"
       );
@@ -205,7 +220,7 @@ describe("ConfirmEmailProcessor", () => {
   describe("failed", () => {
     it("should log failure message with job data", () => {
       const job = createMockJob(
-        mockConfirmEmailJobData,
+        mockConfirmEmailJobData.toBinary(),
         "confirm-email",
         "123"
       );

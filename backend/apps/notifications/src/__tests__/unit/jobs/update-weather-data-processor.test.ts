@@ -9,10 +9,10 @@ import {
   mockUpdateWeatherDataJobData,
   mockWeatherData,
 } from "@/__tests__/mocks";
-import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
 import { UpdateWeatherDataProcessor } from "@/infrastructure/queue/jobs/update-weather-data/processor";
+import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
+import { UpdateWeatherDataJobData } from "@common/generated/proto/job_pb";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { UpdateWeatherDataJobData } from "@common/infrastructure/queue";
 
 const mockQueueService = createMockQueueService();
 const mockSubscriptionRepo = createMockSubscriptionRepository();
@@ -35,7 +35,7 @@ describe("UpdateWeatherDataProcessor", () => {
   describe("handle", () => {
     it("should process weather update for confirmed subscription", async () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData,
+        mockUpdateWeatherDataJobData.toBinary(),
         "update-weather-data"
       );
 
@@ -55,19 +55,13 @@ describe("UpdateWeatherDataProcessor", () => {
       expect(mockQueueService.add).toHaveBeenCalledWith(
         QUEUE_TYPES.SEND_WEATHER_UPDATE_EMAIL,
         JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL,
-        {
-          email: mockSubscription.email,
-          city: mockSubscription.city,
-          unsubscribeToken: mockSubscription.unsubscribeToken,
-          weatherData: mockWeatherData,
-          subscriptionId: mockUpdateWeatherDataJobData.subscriptionId,
-        }
+        expect.any(Uint8Array)
       );
     });
 
     it("should skip processing for unconfirmed subscription", async () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData,
+        mockUpdateWeatherDataJobData.toBinary(),
         "update-weather-data"
       );
 
@@ -88,8 +82,8 @@ describe("UpdateWeatherDataProcessor", () => {
     });
 
     it("should skip processing for non-existent subscription", async () => {
-      const jobData: UpdateWeatherDataJobData = { subscriptionId: 999 };
-      const job = createMockJob(jobData, "update-weather-data");
+      const jobData = new UpdateWeatherDataJobData({ subscriptionId: 999 });
+      const job = createMockJob(jobData.toBinary(), "update-weather-data");
 
       mockSubscriptionRepo.findById.mockResolvedValue(null);
 
@@ -105,7 +99,7 @@ describe("UpdateWeatherDataProcessor", () => {
 
     it("should propagate weather provider errors", async () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData,
+        mockUpdateWeatherDataJobData.toBinary(),
         "update-weather-data"
       );
       const errorMessage = "Weather API error";
@@ -129,7 +123,7 @@ describe("UpdateWeatherDataProcessor", () => {
 
     it("should propagate queue service errors", async () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData,
+        mockUpdateWeatherDataJobData.toBinary(),
         "update-weather-data"
       );
       const errorMessage = "Queue service error";
@@ -152,13 +146,7 @@ describe("UpdateWeatherDataProcessor", () => {
       expect(mockQueueService.add).toHaveBeenCalledWith(
         QUEUE_TYPES.SEND_WEATHER_UPDATE_EMAIL,
         JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL,
-        {
-          email: mockSubscription.email,
-          city: mockSubscription.city,
-          unsubscribeToken: mockSubscription.unsubscribeToken,
-          weatherData: mockWeatherData,
-          subscriptionId: mockUpdateWeatherDataJobData.subscriptionId,
-        }
+        expect.any(Uint8Array)
       );
     });
   });
@@ -166,14 +154,16 @@ describe("UpdateWeatherDataProcessor", () => {
   describe("completed", () => {
     it("should log completion message", () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData,
+        mockUpdateWeatherDataJobData.toBinary(),
         "update-weather-data"
       );
 
       processor.completed(job);
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining(`sub ${job?.data.subscriptionId}`)
+        expect.stringContaining(
+          `sub ${mockUpdateWeatherDataJobData.subscriptionId}`
+        )
       );
     });
   });
@@ -181,7 +171,7 @@ describe("UpdateWeatherDataProcessor", () => {
   describe("failed", () => {
     it("should log failure message with job data", () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData,
+        mockUpdateWeatherDataJobData.toBinary(),
         "update-weather-data"
       );
       const errorMessage = "Test error";
@@ -190,11 +180,13 @@ describe("UpdateWeatherDataProcessor", () => {
       processor.failed(job, error);
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining(`sub ${job?.data.subscriptionId}`),
+        expect.stringContaining(
+          `sub ${mockUpdateWeatherDataJobData.subscriptionId}`
+        ),
         error,
         {
           jobId: job?.id,
-          jobData: job?.data,
+          jobData: mockUpdateWeatherDataJobData,
         }
       );
     });

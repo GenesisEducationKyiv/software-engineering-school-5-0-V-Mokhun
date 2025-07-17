@@ -1,7 +1,7 @@
 import { Job, Worker } from "bullmq";
 import { JobProcessor, QueueType, WorkerConfig } from "../types";
 
-export function createWorker<T>(
+export function createWorker<T >(
   queueName: QueueType,
   config: WorkerConfig,
   processorInstance: JobProcessor<T>,

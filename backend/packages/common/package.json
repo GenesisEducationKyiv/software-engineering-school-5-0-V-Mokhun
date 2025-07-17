@@ -3,6 +3,16 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    "./generated/*": {
+      "types": "./dist/generated/*.d.ts",
+      "default": "./dist/generated/*.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tspc"
   },
@@ -11,6 +21,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@bufbuild/protobuf": "^1.10.0",
     "@prisma/client": "6.5.0",
     "bullmq": "^5.52.2",
     "dotenv": "^16.5.0",

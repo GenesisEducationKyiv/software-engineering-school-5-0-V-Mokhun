@@ -1,6 +1,6 @@
 import { Job } from "bullmq";
 import { JobProcessor } from "../../types";
-import { ConfirmEmailJobData } from "@common/infrastructure/queue";
+import { ConfirmEmailJobData } from "@common/generated/proto/job_pb";
 import {
   IEmailService,
   ISubscriptionRepository,
@@ -9,9 +9,7 @@ import {
 import { ILogger } from "@logger/logger.interface";
 import { Subscription } from "@prisma/client";
 
-export class ConfirmEmailProcessor
-  implements JobProcessor<ConfirmEmailJobData>
-{
+export class ConfirmEmailProcessor implements JobProcessor {
   constructor(
     private readonly emailService: IEmailService,
     private readonly subscriptionRepo: ISubscriptionRepository,
@@ -19,8 +17,9 @@ export class ConfirmEmailProcessor
     private readonly logger: ILogger
   ) {}
 
-  async handle(job: Job<ConfirmEmailJobData>) {
-    const { email, city, confirmToken } = job.data;
+  async handle(job: Job<Uint8Array>) {
+    const jobData = ConfirmEmailJobData.fromBinary(job.data);
+    const { email, city, confirmToken } = jobData;
     let subscription: Subscription | null = null;
     let subscriptionLookedUp = false;
 
@@ -74,14 +73,19 @@ export class ConfirmEmailProcessor
     }
   }
 
-  completed(job: Job<ConfirmEmailJobData>) {
-    this.logger.info("Confirm email job completed", { jobId: job.id });
+  completed(job: Job<Uint8Array>) {
+    const jobData = ConfirmEmailJobData.fromBinary(job.data);
+    this.logger.info("Confirm email job completed", {
+      jobId: job.id,
+      email: jobData.email,
+    });
   }
 
-  failed(job: Job<ConfirmEmailJobData> | undefined, error: Error) {
+  failed(job: Job<Uint8Array> | undefined, error: Error) {
+    const jobData = job ? ConfirmEmailJobData.fromBinary(job.data) : undefined;
     this.logger.error("Confirm email job failed", error, {
       jobId: job?.id,
-      jobData: job?.data,
+      jobData,
     });
   }
 }

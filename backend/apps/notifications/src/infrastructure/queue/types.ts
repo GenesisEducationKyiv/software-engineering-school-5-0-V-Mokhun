@@ -17,7 +17,7 @@ export type QueueConfig = BaseConfig & {
   defaultJobOptions?: DefaultJobOptions;
 };
 
-export type JobProcessor<T = any> = {
+export type JobProcessor<T = Uint8Array> = {
   handle: (job: Job<T>) => Promise<any>;
   completed: (job: Job<T>) => void;
   failed: (job: Job<T> | undefined, error: Error) => void;
