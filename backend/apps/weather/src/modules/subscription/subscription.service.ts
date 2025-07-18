@@ -38,10 +38,20 @@ export class SubscriptionService implements ISubscriptionService {
       confirmed: false,
     });
 
+    const subscription = await this.repo.findSubscriptionByEmailAndCity(
+      email,
+      city
+    );
+
+    if (!subscription) {
+      throw new Error("Subscription not found after upsert");
+    }
+
     const jobData = new ConfirmEmailJobData({
       email,
       city,
       confirmToken,
+      subscriptionId: subscription.id,
     });
 
     await this.queueService.add(

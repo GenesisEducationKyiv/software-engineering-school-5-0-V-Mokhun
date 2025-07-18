@@ -3,32 +3,30 @@ import { ILogger } from "@logger/logger.interface";
 import {
   IEmailService,
   IEmailLogRepository,
-  ISubscriptionRepository,
 } from "@common/shared/ports";
-import { WorkerConfig } from "../../types";
-import { createWorker } from "../worker-factory";
+import { WorkerConfig } from "@common/infrastructure/queue/types";
+import { createWorker } from "@common/infrastructure/queue/job-worker.factory";
 import { ConfirmEmailProcessor } from "./processor";
+
+export type ConfirmEmailDependencies = {
+  logger: ILogger;
+  emailService: IEmailService;
+  emailLogRepo: IEmailLogRepository;
+};
 
 export const createConfirmEmailWorker = (
   config: WorkerConfig,
-  dependencies: {
-    emailService: IEmailService;
-    subscriptionRepo: ISubscriptionRepository;
-    emailLogRepo: IEmailLogRepository;
-    logger: ILogger;
-  }
+  dependencies: ConfirmEmailDependencies,
 ) => {
   const processor = new ConfirmEmailProcessor(
     dependencies.emailService,
-    dependencies.subscriptionRepo,
     dependencies.emailLogRepo,
-    dependencies.logger
+    dependencies.logger,
   );
-
   return createWorker(
     config.queueName,
     config,
     processor,
-    JOB_TYPES.CONFIRM_EMAIL
+    JOB_TYPES.CONFIRM_EMAIL,
   );
 };

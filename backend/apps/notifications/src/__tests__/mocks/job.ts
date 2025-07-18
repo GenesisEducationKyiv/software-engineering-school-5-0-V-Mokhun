@@ -1,9 +1,7 @@
 import { Job } from "bullmq";
-import { mockWeatherData } from "./weather";
 import {
   ConfirmEmailJobData,
   SendWeatherUpdateEmailJobData,
-  UpdateWeatherDataJobData,
   WeatherData,
 } from "@common/generated/proto/job_pb";
 
@@ -11,6 +9,7 @@ export const mockConfirmEmailJobData = new ConfirmEmailJobData({
   email: "test@example.com",
   city: "London",
   confirmToken: "confirm-token-456",
+  subscriptionId: 1,
 });
 
 export const mockSendWeatherUpdateEmailJobData =
@@ -18,13 +17,13 @@ export const mockSendWeatherUpdateEmailJobData =
     subscriptionId: 1,
     email: "test@example.com",
     city: "London",
-    weatherData: new WeatherData(mockWeatherData),
+    weatherData: new WeatherData({
+      temperature: 20,
+      humidity: 60,
+      description: "Sunny",
+    }),
     unsubscribeToken: "unsubscribe-token-123",
   });
-
-export const mockUpdateWeatherDataJobData = new UpdateWeatherDataJobData({
-  subscriptionId: 1,
-});
 
 export const createMockJob = <T>(
   data: T,

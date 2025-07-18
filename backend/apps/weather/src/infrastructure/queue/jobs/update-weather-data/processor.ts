@@ -1,26 +1,29 @@
 import { Job } from "bullmq";
-import { IQueueService, ISubscriptionRepository } from "@common/shared/ports";
-import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
-import { JobProcessor } from "../../types";
 import {
+  ISubscriptionRepository,
+  IWeatherProvider,
+  IQueueService,
+} from "@common/shared/ports";
+import { ILogger } from "@logger/logger.interface";
+import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
+import {
+  SendWeatherUpdateEmailJobData,
   UpdateWeatherDataJobData,
   WeatherData,
-  SendWeatherUpdateEmailJobData,
 } from "@common/generated/proto/job_pb";
-import { IWeatherProvider } from "@common/shared/ports";
-import { ILogger } from "@logger/logger.interface";
 
-export class UpdateWeatherDataProcessor implements JobProcessor {
+export class UpdateWeatherDataProcessor {
   constructor(
-    private readonly queueService: IQueueService,
     private readonly subscriptionRepo: ISubscriptionRepository,
     private readonly weatherProvider: IWeatherProvider,
+    private readonly queueService: IQueueService,
     private readonly logger: ILogger
   ) {}
 
   async handle(job: Job<Uint8Array>) {
     const jobData = UpdateWeatherDataJobData.fromBinary(job.data);
     const { subscriptionId } = jobData;
+
     try {
       const subscription = await this.subscriptionRepo.findById(subscriptionId);
 
@@ -31,7 +34,7 @@ export class UpdateWeatherDataProcessor implements JobProcessor {
         return;
       }
 
-      const { email, city, unsubscribeToken } = subscription;
+      const { email, city, unsubscribeToken, id } = subscription;
 
       const weatherData = await this.weatherProvider.getWeatherData(city);
 
@@ -39,8 +42,8 @@ export class UpdateWeatherDataProcessor implements JobProcessor {
         email,
         city,
         unsubscribeToken,
-        subscriptionId,
-        weatherData: new WeatherData(weatherData),
+        subscriptionId: id,
+        weatherData: new WeatherData({ ...weatherData }),
       });
 
       await this.queueService.add(
@@ -59,17 +62,20 @@ export class UpdateWeatherDataProcessor implements JobProcessor {
 
   completed(job: Job<Uint8Array>) {
     const jobData = UpdateWeatherDataJobData.fromBinary(job.data);
+    const { subscriptionId } = jobData;
     this.logger.info(
-      `Weather data update job completed for sub ${jobData.subscriptionId}`
+      `Update weather data job completed for subscription ID: ${subscriptionId}`,
+      { jobId: job.id }
     );
   }
 
   failed(job: Job<Uint8Array> | undefined, error: Error) {
-    const jobData = job
+    const jobData = job?.data
       ? UpdateWeatherDataJobData.fromBinary(job.data)
       : undefined;
+
     this.logger.error(
-      `Weather data update job failed for sub ${jobData?.subscriptionId}`,
+      `Update weather data job failed for subscription ID: ${jobData?.subscriptionId}`,
       error,
       {
         jobId: job?.id,

@@ -1,4 +1,4 @@
-import { WeatherProvider } from "@common/infrastructure/weather/weather.provider";
+import { WeatherProvider } from "@/infrastructure/weather/weather.provider";
 import { IWeatherProvider } from "@common/shared/ports";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { mockLogger, mockWeatherData, MockWeatherProvider } from "../mocks";
@@ -20,7 +20,7 @@ describe("WeatherProvider", () => {
 
     const weatherProvider = new WeatherProvider(
       [provider1, provider2],
-      mockLogger
+      mockLogger,
     );
     const result = await weatherProvider.getWeatherData(city);
 
@@ -39,7 +39,7 @@ describe("WeatherProvider", () => {
 
     const weatherProvider = new WeatherProvider(
       [provider1, provider2],
-      mockLogger
+      mockLogger,
     );
     const result = await weatherProvider.getWeatherData(city);
 
@@ -58,7 +58,7 @@ describe("WeatherProvider", () => {
 
     const weatherProvider = new WeatherProvider(
       [provider1, provider2],
-      mockLogger
+      mockLogger,
     );
 
     await expect(weatherProvider.getWeatherData(city)).rejects.toThrow();

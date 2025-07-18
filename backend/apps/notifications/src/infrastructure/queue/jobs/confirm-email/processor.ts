@@ -1,27 +1,19 @@
 import { Job } from "bullmq";
-import { JobProcessor } from "../../types";
+import { JobProcessor } from "@common/infrastructure/queue/types";
 import { ConfirmEmailJobData } from "@common/generated/proto/job_pb";
-import {
-  IEmailService,
-  ISubscriptionRepository,
-  IEmailLogRepository,
-} from "@common/shared/ports";
+import { IEmailService, IEmailLogRepository } from "@common/shared/ports";
 import { ILogger } from "@logger/logger.interface";
-import { Subscription } from "@prisma/client";
 
 export class ConfirmEmailProcessor implements JobProcessor {
   constructor(
     private readonly emailService: IEmailService,
-    private readonly subscriptionRepo: ISubscriptionRepository,
     private readonly emailLogRepo: IEmailLogRepository,
     private readonly logger: ILogger
   ) {}
 
   async handle(job: Job<Uint8Array>) {
     const jobData = ConfirmEmailJobData.fromBinary(job.data);
-    const { email, city, confirmToken } = jobData;
-    let subscription: Subscription | null = null;
-    let subscriptionLookedUp = false;
+    const { email, city, confirmToken, subscriptionId } = jobData;
 
     try {
       await this.emailService.sendConfirmationEmail({
@@ -30,37 +22,22 @@ export class ConfirmEmailProcessor implements JobProcessor {
         confirmToken,
       });
 
-      subscription = await this.subscriptionRepo.findSubscriptionByEmailAndCity(
-        email,
-        city
-      );
-
-      subscriptionLookedUp = true;
-
-      if (!subscription) {
+      if (!subscriptionId) {
         throw new Error(
-          "Subscription not found after sending confirmation email."
+          "Subscription ID not found in job data after sending confirmation email."
         );
       }
 
       await this.emailLogRepo.create({
-        subscriptionId: subscription.id,
+        subscriptionId,
         type: "subscription_confirmation",
         status: "sent",
         sentAt: new Date(),
       });
     } catch (error) {
-      if (!subscriptionLookedUp) {
-        subscription =
-          await this.subscriptionRepo.findSubscriptionByEmailAndCity(
-            email,
-            city
-          );
-      }
-
-      if (subscription) {
+      if (subscriptionId) {
         await this.emailLogRepo.create({
-          subscriptionId: subscription.id,
+          subscriptionId,
           status: "failed",
           type: "subscription_confirmation",
           errorMessage:

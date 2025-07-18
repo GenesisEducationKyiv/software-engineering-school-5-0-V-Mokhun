@@ -74,6 +74,11 @@ export class ConfirmEmailJobData extends Message<ConfirmEmailJobData> {
    */
   confirmToken = "";
 
+  /**
+   * @generated from field: int32 subscriptionId = 4;
+   */
+  subscriptionId = 0;
+
   constructor(data?: PartialMessage<ConfirmEmailJobData>) {
     super();
     proto3.util.initPartial(data, this);
@@ -85,6 +90,7 @@ export class ConfirmEmailJobData extends Message<ConfirmEmailJobData> {
     { no: 1, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "city", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "confirmToken", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "subscriptionId", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConfirmEmailJobData {

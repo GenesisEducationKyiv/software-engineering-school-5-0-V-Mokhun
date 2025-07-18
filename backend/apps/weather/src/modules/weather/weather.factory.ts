@@ -1,7 +1,7 @@
-import { createWeatherProvider } from "@common/infrastructure/weather";
+import { createWeatherProvider } from "@/infrastructure/weather/weather.factory";
 import { ILogger } from "@logger/logger.interface";
 import { IDatabase } from "@common/shared/ports";
-import { WeatherRepository } from "@common/infrastructure/repositories/weather.repository";
+import { WeatherRepository } from "@/infrastructure/repositories/weather.repository";
 import { WeatherController } from "./weather.controller";
 import { WeatherService } from "./weather.service";
 import { IMetricsService } from "@/shared/ports";

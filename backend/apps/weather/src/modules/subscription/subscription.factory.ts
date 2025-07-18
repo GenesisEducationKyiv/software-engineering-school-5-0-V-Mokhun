@@ -2,7 +2,7 @@ import { IQueueService } from "@common/shared/ports";
 import { createQueueService } from "@common/infrastructure/queue/queue.factory";
 import { ILogger } from "@logger/logger.interface";
 import { IDatabase } from "@common/shared/ports";
-import { SubscriptionRepository } from "@common/infrastructure/repositories/subscription.repository";
+import { SubscriptionRepository } from "@/infrastructure/repositories/subscription.repository";
 import { SubscriptionController } from "./subscription.controller";
 import { SubscriptionService } from "./subscription.service";
 

@@ -1,7 +1,9 @@
 import { app } from "./app";
 import { env } from "@common/config";
 import { connectDb } from "@common/db";
+import { JobManager } from "@common/infrastructure/queue";
 import { getLogger } from "@logger/logger.factory";
+import { workers } from "./infrastructure/queue/workers";
 
 async function startServer() {
   const logger = getLogger();
@@ -12,9 +14,16 @@ async function startServer() {
     });
     await connectDb();
 
+    const jobManager = new JobManager(workers, logger);
+    jobManager.initializeWorkers();
+
     const shutdown = async () => {
       server.close(() => {
         logger.info("Server shutdown");
+      });
+
+      jobManager.stopWorkers().then(() => {
+        logger.info("Workers stopped");
       });
 
       process.exit(0);

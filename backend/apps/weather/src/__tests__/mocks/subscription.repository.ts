@@ -10,7 +10,7 @@ export const createMockSubscriptionRepository = (): jest.Mocked<ISubscriptionRep
   deleteSubscription: jest.fn(),
   findSubscriptionByEmailAndCity: jest.fn(),
   findById: jest.fn(),
-  updateLastSentAt: jest.fn(),
+  findAllConfirmed: jest.fn(),
 });
 
 export const mockSubscriptionRepository = createMockSubscriptionRepository(); 

@@ -12,6 +12,7 @@ message ConfirmEmailJobData {
   string email = 1;
   string city = 2;
   string confirmToken = 3;
+  int32 subscriptionId = 4;
 }
 
 message UpdateWeatherDataJobData {

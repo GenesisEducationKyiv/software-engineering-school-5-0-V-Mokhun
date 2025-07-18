@@ -1,28 +1,10 @@
-import {
-  ConfirmEmailJobData,
-  SendWeatherUpdateEmailJobData,
-  UpdateWeatherDataJobData,
-} from "@common/infrastructure/queue/jobs";
 import { Job } from "bullmq";
 import { mockWeatherData } from "./weather";
+import { UpdateWeatherDataJobData } from "@common/generated/proto/job_pb";
 
-export const mockConfirmEmailJobData: ConfirmEmailJobData = {
-  email: "test@example.com",
-  city: "London",
-  confirmToken: "confirm-token-456",
-};
-
-export const mockSendWeatherUpdateEmailJobData: SendWeatherUpdateEmailJobData =
-  {
-    subscriptionId: 1,
-    ...mockConfirmEmailJobData,
-    weatherData: mockWeatherData,
-    unsubscribeToken: "unsubscribe-token-123",
-  };
-
-export const mockUpdateWeatherDataJobData: UpdateWeatherDataJobData = {
+export const mockUpdateWeatherDataJobData = new UpdateWeatherDataJobData({
   subscriptionId: 1,
-};
+});
 
 export const createMockJob = <T>(
   data: T,
