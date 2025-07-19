@@ -3,7 +3,7 @@ import { ILogger } from "@logger/logger.interface";
 import {
   IEmailService,
   IEmailLogRepository,
-} from "@common/shared/ports";
+} from "@/shared/ports";
 import { WorkerConfig } from "@common/infrastructure/queue/types";
 import { createWorker } from "@common/infrastructure/queue/job-worker.factory";
 import { ConfirmEmailProcessor } from "./processor";

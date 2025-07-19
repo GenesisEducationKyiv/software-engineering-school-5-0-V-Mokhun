@@ -1,4 +1,4 @@
-import { IWeatherProvider, WeatherData } from "@common/shared/ports";
+import { IWeatherProvider, WeatherData } from "@/shared/ports";
 import { ILogger } from "@logger/logger.interface";
 
 export class WeatherProvider implements IWeatherProvider {

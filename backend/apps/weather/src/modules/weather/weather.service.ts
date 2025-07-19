@@ -5,7 +5,7 @@ import {
   IWeatherProvider,
   IWeatherRepository,
   WeatherData,
-} from "@common/shared/ports";
+} from "@/shared/ports";
 
 export class WeatherService implements IWeatherService {
   constructor(

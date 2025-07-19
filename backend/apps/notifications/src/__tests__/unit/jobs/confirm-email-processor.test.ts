@@ -28,7 +28,7 @@ describe("ConfirmEmailProcessor", () => {
   describe("handle", () => {
     it("should send confirmation email and log success", async () => {
       const job = createMockJob(
-        mockConfirmEmailJobData.toBinary(),
+        Buffer.from(mockConfirmEmailJobData.toBinary()),
         "confirm-email"
       );
 
@@ -37,7 +37,7 @@ describe("ConfirmEmailProcessor", () => {
       expect(mockEmailService.sendConfirmationEmail).toHaveBeenCalledWith({
         to: mockConfirmEmailJobData.email,
         city: mockConfirmEmailJobData.city,
-        confirmToken: mockConfirmEmailJobData.confirmToken,
+        confirmUrl: mockConfirmEmailJobData.confirmUrl,
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
@@ -50,7 +50,7 @@ describe("ConfirmEmailProcessor", () => {
 
     it("should handle email service error and log failure", async () => {
       const job = createMockJob(
-        mockConfirmEmailJobData.toBinary(),
+        Buffer.from(mockConfirmEmailJobData.toBinary()),
         "confirm-email"
       );
       const errorMessage = "Email service error";
@@ -63,7 +63,7 @@ describe("ConfirmEmailProcessor", () => {
       expect(mockEmailService.sendConfirmationEmail).toHaveBeenCalledWith({
         to: mockConfirmEmailJobData.email,
         city: mockConfirmEmailJobData.city,
-        confirmToken: mockConfirmEmailJobData.confirmToken,
+        confirmUrl: mockConfirmEmailJobData.confirmUrl,
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
@@ -77,7 +77,7 @@ describe("ConfirmEmailProcessor", () => {
 
     it("should handle unknown error type in error logging", async () => {
       const job = createMockJob(
-        mockConfirmEmailJobData.toBinary(),
+        Buffer.from(mockConfirmEmailJobData.toBinary()),
         "confirm-email"
       );
       const unknownError = "String error";
@@ -99,7 +99,7 @@ describe("ConfirmEmailProcessor", () => {
   describe("completed", () => {
     it("should log completion message", () => {
       const job = createMockJob(
-        mockConfirmEmailJobData.toBinary(),
+        Buffer.from(mockConfirmEmailJobData.toBinary()),
         "confirm-email",
         "123"
       );
@@ -119,7 +119,7 @@ describe("ConfirmEmailProcessor", () => {
   describe("failed", () => {
     it("should log failure message with job data", () => {
       const job = createMockJob(
-        mockConfirmEmailJobData.toBinary(),
+        Buffer.from(mockConfirmEmailJobData.toBinary()),
         "confirm-email",
         "123"
       );

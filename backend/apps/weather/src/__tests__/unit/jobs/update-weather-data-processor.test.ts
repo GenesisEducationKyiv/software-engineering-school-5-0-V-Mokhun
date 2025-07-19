@@ -33,7 +33,7 @@ describe("UpdateWeatherDataProcessor", () => {
   describe("handle", () => {
     it("should process weather data update and enqueue email job", async () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData.toBinary(),
+        Buffer.from(mockUpdateWeatherDataJobData.toBinary()),
         "update-weather-data"
       );
 
@@ -59,7 +59,7 @@ describe("UpdateWeatherDataProcessor", () => {
 
     it("should not process if subscription is not found or not confirmed", async () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData.toBinary(),
+        Buffer.from(mockUpdateWeatherDataJobData.toBinary()),
         "update-weather-data"
       );
 
@@ -73,7 +73,7 @@ describe("UpdateWeatherDataProcessor", () => {
 
     it("should propagate weather provider errors", async () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData.toBinary(),
+        Buffer.from(mockUpdateWeatherDataJobData.toBinary()),
         "update-weather-data"
       );
       const errorMessage = "Weather API error";
@@ -97,7 +97,7 @@ describe("UpdateWeatherDataProcessor", () => {
 
     it("should propagate queue service errors", async () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData.toBinary(),
+        Buffer.from(mockUpdateWeatherDataJobData.toBinary()),
         "update-weather-data"
       );
       const errorMessage = "Queue service error";
@@ -128,7 +128,7 @@ describe("UpdateWeatherDataProcessor", () => {
   describe("completed", () => {
     it("should log completion message", () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData.toBinary(),
+        Buffer.from(mockUpdateWeatherDataJobData.toBinary()),
         "update-weather-data"
       );
 
@@ -148,7 +148,7 @@ describe("UpdateWeatherDataProcessor", () => {
   describe("failed", () => {
     it("should log failure message with job data", () => {
       const job = createMockJob(
-        mockUpdateWeatherDataJobData.toBinary(),
+        Buffer.from(mockUpdateWeatherDataJobData.toBinary()),
         "update-weather-data"
       );
       const errorMessage = "Test error";

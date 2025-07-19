@@ -29,7 +29,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
   describe("handle", () => {
     it("should send weather update email and log success", async () => {
       const job = createMockJob(
-        mockSendWeatherUpdateEmailJobData.toBinary(),
+        Buffer.from(mockSendWeatherUpdateEmailJobData.toBinary()),
         "send-weather-update-email"
       );
 
@@ -39,7 +39,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
         to: mockSendWeatherUpdateEmailJobData.email,
         city: mockSendWeatherUpdateEmailJobData.city,
         weatherData: mockSendWeatherUpdateEmailJobData.weatherData,
-        unsubscribeToken: mockSendWeatherUpdateEmailJobData.unsubscribeToken,
+        unsubscribeUrl: mockSendWeatherUpdateEmailJobData.unsubscribeUrl,
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
@@ -68,7 +68,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
 
     it("should handle email service error and log failure", async () => {
       const job = createMockJob(
-        mockSendWeatherUpdateEmailJobData.toBinary(),
+        Buffer.from(mockSendWeatherUpdateEmailJobData.toBinary()),
         "send-weather-update-email"
       );
       const errorMessage = "Email service error";
@@ -82,7 +82,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
         to: mockSendWeatherUpdateEmailJobData.email,
         city: mockSendWeatherUpdateEmailJobData.city,
         weatherData: mockSendWeatherUpdateEmailJobData.weatherData,
-        unsubscribeToken: mockSendWeatherUpdateEmailJobData.unsubscribeToken,
+        unsubscribeUrl: mockSendWeatherUpdateEmailJobData.unsubscribeUrl,
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledWith({
@@ -96,7 +96,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
 
     it("should handle unknown error type in error logging", async () => {
       const job = createMockJob(
-        mockSendWeatherUpdateEmailJobData.toBinary(),
+        Buffer.from(mockSendWeatherUpdateEmailJobData.toBinary()),
         "send-weather-update-email"
       );
       const unknownError = "String error";
@@ -116,7 +116,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
 
     it("should handle email log repository error during success path", async () => {
       const job = createMockJob(
-        mockSendWeatherUpdateEmailJobData.toBinary(),
+        Buffer.from(mockSendWeatherUpdateEmailJobData.toBinary()),
         "send-weather-update-email"
       );
       const errorMessage = "Log repository error";
@@ -130,7 +130,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
         to: mockSendWeatherUpdateEmailJobData.email,
         city: mockSendWeatherUpdateEmailJobData.city,
         weatherData: mockSendWeatherUpdateEmailJobData.weatherData,
-        unsubscribeToken: mockSendWeatherUpdateEmailJobData.unsubscribeToken,
+        unsubscribeUrl: mockSendWeatherUpdateEmailJobData.unsubscribeUrl,
       });
 
       expect(mockEmailLogRepo.create).toHaveBeenCalledTimes(2);
@@ -155,7 +155,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
   describe("completed", () => {
     it("should log completion message", () => {
       const job = createMockJob(
-        mockSendWeatherUpdateEmailJobData.toBinary(),
+        Buffer.from(mockSendWeatherUpdateEmailJobData.toBinary()),
         "send-weather-update-email",
         "123"
       );
@@ -174,7 +174,7 @@ describe("SendWeatherUpdateEmailProcessor", () => {
   describe("failed", () => {
     it("should log failure message with job data", () => {
       const job = createMockJob(
-        mockSendWeatherUpdateEmailJobData.toBinary(),
+        Buffer.from(mockSendWeatherUpdateEmailJobData.toBinary()),
         "send-weather-update-email",
         "123"
       );

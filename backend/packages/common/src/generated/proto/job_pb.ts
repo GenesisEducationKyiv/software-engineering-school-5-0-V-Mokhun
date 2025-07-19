@@ -70,9 +70,9 @@ export class ConfirmEmailJobData extends Message<ConfirmEmailJobData> {
   city = "";
 
   /**
-   * @generated from field: string confirmToken = 3;
+   * @generated from field: string confirmUrl = 3;
    */
-  confirmToken = "";
+  confirmUrl = "";
 
   /**
    * @generated from field: int32 subscriptionId = 4;
@@ -89,7 +89,7 @@ export class ConfirmEmailJobData extends Message<ConfirmEmailJobData> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "city", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "confirmToken", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "confirmUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "subscriptionId", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
   ]);
 
@@ -152,24 +152,24 @@ export class UpdateWeatherDataJobData extends Message<UpdateWeatherDataJobData> 
  */
 export class SendWeatherUpdateEmailJobData extends Message<SendWeatherUpdateEmailJobData> {
   /**
-   * @generated from field: int32 subscriptionId = 1;
-   */
-  subscriptionId = 0;
-
-  /**
-   * @generated from field: string email = 2;
+   * @generated from field: string email = 1;
    */
   email = "";
 
   /**
-   * @generated from field: string city = 3;
+   * @generated from field: string city = 2;
    */
   city = "";
 
   /**
-   * @generated from field: string unsubscribeToken = 4;
+   * @generated from field: string unsubscribeUrl = 3;
    */
-  unsubscribeToken = "";
+  unsubscribeUrl = "";
+
+  /**
+   * @generated from field: int32 subscriptionId = 4;
+   */
+  subscriptionId = 0;
 
   /**
    * @generated from field: job.WeatherData weatherData = 5;
@@ -184,10 +184,10 @@ export class SendWeatherUpdateEmailJobData extends Message<SendWeatherUpdateEmai
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "job.SendWeatherUpdateEmailJobData";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "subscriptionId", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
-    { no: 2, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "city", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "unsubscribeToken", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "city", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "unsubscribeUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "subscriptionId", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 5, name: "weatherData", kind: "message", T: WeatherData },
   ]);
 

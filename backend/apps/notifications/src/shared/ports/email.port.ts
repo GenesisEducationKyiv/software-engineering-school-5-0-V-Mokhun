@@ -1,16 +1,16 @@
-import { WeatherData } from "./weather.port";
+import { WeatherData } from "@common/generated/proto/job_pb";
 
 export type ConfirmationEmailParams = {
   to: string;
   city: string;
-  confirmToken: string;
+  confirmUrl: string;
 };
 
 export type WeatherUpdateEmailParams = {
   to: string;
   city: string;
   weatherData: WeatherData;
-  unsubscribeToken: string;
+  unsubscribeUrl: string;
 };
 
 export interface IEmailService {

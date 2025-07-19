@@ -1,5 +1,5 @@
 import { WeatherProvider } from "@/infrastructure/weather/weather.provider";
-import { IWeatherProvider } from "@common/shared/ports";
+import { IWeatherProvider } from "@/shared/ports";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { mockLogger, mockWeatherData, MockWeatherProvider } from "../mocks";
 

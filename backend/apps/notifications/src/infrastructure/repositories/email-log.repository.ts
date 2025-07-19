@@ -1,8 +1,5 @@
-import {
-  EmailLogCreateInput,
-  IDatabase,
-  IEmailLogRepository,
-} from "@common/shared/ports";
+import { IDatabase } from "@common/shared/ports";
+import { IEmailLogRepository, EmailLogCreateInput } from "@/shared/ports";
 
 export class EmailLogRepository implements IEmailLogRepository {
   constructor(private readonly db: IDatabase) {}

@@ -1,19 +1,26 @@
 import { SubscriptionRepository } from "@/infrastructure/repositories/subscription.repository";
 import { createWeatherProvider } from "@/infrastructure/weather/weather.factory";
-import { env } from "@common/config";
+import { env } from "@/config/env";
 import { QUEUE_TYPES } from "@common/constants";
-import {
-  createQueueService,
-  createRootConfig,
-} from "@common/infrastructure/queue";
+import { createQueueService } from "@common/infrastructure/queue";
 import { WorkerConfig } from "@common/infrastructure/queue/types";
 import { IDatabase } from "@common/shared/ports";
 import { ILogger } from "@logger/logger.interface";
-import { createUpdateWeatherDataWorker } from "./jobs";
+import { createUpdateWeatherDataWorker } from "./jobs/update-weather-data";
+import { createRootConfig } from "./config";
 
 export const composeWorkers = (db: IDatabase, logger: ILogger) => {
-  const rootConnectionConfig = createRootConfig();
-  const queueService = createQueueService({ logger, ...rootConnectionConfig });
+  const rootConnectionConfig = createRootConfig({
+    host: env.REDIS_HOST,
+    port: env.REDIS_PORT,
+  });
+  const queueService = createQueueService({
+    logger,
+    connectionConfig: {
+      host: env.REDIS_HOST,
+      port: env.REDIS_PORT,
+    },
+  });
   const subscriptionRepo = new SubscriptionRepository(db);
   const weatherProvider = createWeatherProvider({
     logger,

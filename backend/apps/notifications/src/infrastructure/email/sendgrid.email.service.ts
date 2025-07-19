@@ -3,9 +3,9 @@ import {
   ConfirmationEmailParams,
   IEmailService,
   WeatherUpdateEmailParams,
-} from "@common/shared/ports";
+} from "@/shared/ports";
 import { ILogger } from "@logger/logger.interface";
-import { confirmEmailTemplate, weatherUpdateTemplate } from "./templates";
+import { getConfirmEmailTemplate, getWeatherUpdateTemplate } from "./templates";
 
 export class SendgridEmailService implements IEmailService {
   constructor(
@@ -44,7 +44,7 @@ export class SendgridEmailService implements IEmailService {
 
   async sendConfirmationEmail(params: ConfirmationEmailParams): Promise<void> {
     const subject = `Confirm your weather subscription for ${params.city}`;
-    const html = confirmEmailTemplate(params.city, params.confirmToken);
+    const html = getConfirmEmailTemplate(params.city, params.confirmUrl);
     await this.send({ to: params.to, subject, html });
   }
 
@@ -52,10 +52,10 @@ export class SendgridEmailService implements IEmailService {
     params: WeatherUpdateEmailParams
   ): Promise<void> {
     const subject = `Weather Update for ${params.city}`;
-    const html = weatherUpdateTemplate(
+    const html = getWeatherUpdateTemplate(
       params.city,
       params.weatherData,
-      params.unsubscribeToken
+      params.unsubscribeUrl
     );
     await this.send({ to: params.to, subject, html });
   }

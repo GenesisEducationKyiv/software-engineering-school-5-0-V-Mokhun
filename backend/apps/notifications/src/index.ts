@@ -1,5 +1,6 @@
-import { connectDb } from "@common/db";
-import { JobManager, workers } from "./infrastructure/queue";
+import { connectDb } from "@/db";
+import { JobManager } from "@common/infrastructure/queue";
+import { workers } from "./infrastructure/queue/workers";
 import { getLogger } from "@logger/logger.factory";
 
 async function startService() {

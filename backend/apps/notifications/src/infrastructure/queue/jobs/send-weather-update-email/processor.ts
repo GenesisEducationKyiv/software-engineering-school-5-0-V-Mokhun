@@ -4,7 +4,7 @@ import { SendWeatherUpdateEmailJobData } from "@common/generated/proto/job_pb";
 import {
   IEmailService,
   IEmailLogRepository,
-} from "@common/shared/ports";
+} from "@/shared/ports";
 import { ILogger } from "@logger/logger.interface";
 
 export class SendWeatherUpdateEmailProcessor implements JobProcessor {
@@ -16,13 +16,13 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
 
   async handle(job: Job<Uint8Array>) {
     const jobData = SendWeatherUpdateEmailJobData.fromBinary(job.data);
-    const { email, city, unsubscribeToken, weatherData, subscriptionId } =
+    const { email, city, unsubscribeUrl, weatherData, subscriptionId } =
       jobData;
 
     if (
       !email ||
       !city ||
-      !unsubscribeToken ||
+      !unsubscribeUrl ||
       !subscriptionId ||
       !weatherData
     ) {
@@ -35,7 +35,7 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
         to: email,
         city,
         weatherData,
-        unsubscribeToken,
+        unsubscribeUrl,
       });
 
       await this.emailLogRepo.create({

@@ -1,5 +1,5 @@
 import { composeWorkers } from "./composition-root";
-import { getDb } from "@common/db";
+import { getDb } from "@/db";
 import { getLogger } from "@logger/logger.factory";
 
 const logger = getLogger();

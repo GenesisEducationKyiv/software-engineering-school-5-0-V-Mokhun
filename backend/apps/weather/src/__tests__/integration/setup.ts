@@ -1,4 +1,4 @@
-import { closeDb, connectDb, resetDb } from "@common/db";
+import { closeDb, connectDb, resetDb } from "@/db";
 import {
   afterAll,
   afterEach,

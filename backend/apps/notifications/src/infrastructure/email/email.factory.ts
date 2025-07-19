@@ -1,5 +1,5 @@
 import { ILogger } from "@logger/logger.interface";
-import { IEmailService } from "@common/shared/ports";
+import { IEmailService } from "@/shared/ports";
 import { SendgridEmailService } from "./sendgrid.email.service";
 
 export function createEmailService({

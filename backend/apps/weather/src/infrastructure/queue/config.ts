@@ -1,12 +1,13 @@
+import { env } from "@/config/env";
 import { RedisOptions } from "ioredis";
 
 export const createRootConfig = ({
-  host,
-  port,
+  host = env.REDIS_HOST,
+  port = env.REDIS_PORT,
 }: {
-  host: string;
-  port: number;
-}): { connection: RedisOptions } => {
+  host?: string;
+  port?: number;
+} = {}): { connection: RedisOptions } => {
   return {
     connection: {
       host,
@@ -14,4 +15,4 @@ export const createRootConfig = ({
       maxRetriesPerRequest: null,
     },
   };
-};
+}; 

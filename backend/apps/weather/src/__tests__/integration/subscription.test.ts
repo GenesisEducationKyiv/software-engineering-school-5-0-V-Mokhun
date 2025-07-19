@@ -1,7 +1,7 @@
 import { app } from "@/app";
 import { FREQUENCY_TO_CRON, JOB_TYPES, QUEUE_TYPES } from "@common/constants";
-import { db } from "@common/db";
-import { SubscriptionCreate } from "@common/shared/ports";
+import { db } from "@/db";
+import { SubscriptionCreate } from "@/shared/ports";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StatusCodes } from "http-status-codes";
 import request from "supertest";

@@ -1,6 +1,6 @@
 import { app } from "./app";
-import { env } from "@common/config";
-import { connectDb } from "@common/db";
+import { env } from "@/config/env";
+import { connectDb } from "@/db";
 import { JobManager } from "@common/infrastructure/queue";
 import { getLogger } from "@logger/logger.factory";
 import { workers } from "./infrastructure/queue/workers";

@@ -3,7 +3,8 @@ import { Frequency } from "@prisma/client";
 import crypto from "crypto";
 import { FREQUENCY_MAP, SubscribeBody } from "./subscription.schema";
 import { ISubscriptionService } from "./subscription.controller";
-import { IQueueService, ISubscriptionRepository } from "@common/shared/ports";
+import { IQueueService } from "@common/shared/ports";
+import { ISubscriptionRepository } from "@/shared/ports";
 import { NotFoundException } from "@common/shared";
 import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
 import { FREQUENCY_TO_CRON } from "@common/constants";
@@ -11,6 +12,7 @@ import {
   ConfirmEmailJobData,
   UpdateWeatherDataJobData,
 } from "@common/generated/proto/job_pb";
+import { env } from "@/config/env";
 
 export class SubscriptionService implements ISubscriptionService {
   constructor(
@@ -28,7 +30,7 @@ export class SubscriptionService implements ISubscriptionService {
       Date.now() + SUBSCRIPTION_CONFIRMATION_EXPIRATION_TIME
     );
 
-    await this.repo.upsertSubscription({
+    const subscription = await this.repo.upsertSubscription({
       email,
       city,
       frequency: FREQUENCY_MAP[frequency] as Frequency,
@@ -38,19 +40,16 @@ export class SubscriptionService implements ISubscriptionService {
       confirmed: false,
     });
 
-    const subscription = await this.repo.findSubscriptionByEmailAndCity(
-      email,
-      city
-    );
-
     if (!subscription) {
       throw new Error("Subscription not found after upsert");
     }
 
+    const confirmUrl = `${env.API_URL}/api/confirm/${confirmToken}`;
+
     const jobData = new ConfirmEmailJobData({
       email,
       city,
-      confirmToken,
+      confirmUrl,
       subscriptionId: subscription.id,
     });
 

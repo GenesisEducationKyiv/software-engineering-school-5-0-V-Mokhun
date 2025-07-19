@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { IEmailLogRepository } from "@common/shared/ports";
+import { IEmailLogRepository } from "@/shared/ports";
 
 export const createMockEmailLogRepository =
   (): jest.Mocked<IEmailLogRepository> => ({

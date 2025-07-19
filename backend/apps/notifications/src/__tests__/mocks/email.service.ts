@@ -3,7 +3,7 @@ import {
   ConfirmationEmailParams,
   IEmailService,
   WeatherUpdateEmailParams,
-} from "@common/shared/ports";
+} from "@/shared/ports";
 
 export class MockEmailService implements IEmailService {
   public sentConfirmationEmails: ConfirmationEmailParams[] = [];

@@ -8,7 +8,7 @@ import {
 export const mockConfirmEmailJobData = new ConfirmEmailJobData({
   email: "test@example.com",
   city: "London",
-  confirmToken: "confirm-token-456",
+  confirmUrl: "confirm-url-456",
   subscriptionId: 1,
 });
 
@@ -22,7 +22,7 @@ export const mockSendWeatherUpdateEmailJobData =
       humidity: 60,
       description: "Sunny",
     }),
-    unsubscribeToken: "unsubscribe-token-123",
+    unsubscribeUrl: "unsubscribe-url-123",
   });
 
 export const createMockJob = <T>(

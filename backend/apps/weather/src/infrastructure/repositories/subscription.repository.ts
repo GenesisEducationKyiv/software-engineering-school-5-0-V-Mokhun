@@ -1,7 +1,4 @@
-import {
-  ISubscriptionRepository,
-  SubscriptionCreate,
-} from "@common/shared/ports";
+import { ISubscriptionRepository, SubscriptionCreate } from "@/shared/ports";
 import { IDatabase } from "@common/shared/ports/database.port";
 import { Subscription } from "@prisma/client";
 

@@ -1,6 +1,6 @@
 import { IDatabase } from "@common/shared/ports";
-import { env } from "@common/config";
 import { PrismaClient } from "@prisma/client";
+import { env } from "@/config";
 
 function createPrismaClient(): IDatabase {
   return new PrismaClient({

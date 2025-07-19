@@ -1,4 +1,4 @@
-import { WeatherData } from "@common/shared/ports";
+import { WeatherData } from "@/shared/ports";
 
 export const mockWeatherData: WeatherData = {
   temperature: 20,

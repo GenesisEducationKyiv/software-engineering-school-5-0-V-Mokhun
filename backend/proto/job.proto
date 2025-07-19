@@ -11,7 +11,7 @@ message WeatherData {
 message ConfirmEmailJobData {
   string email = 1;
   string city = 2;
-  string confirmToken = 3;
+  string confirmUrl = 3;
   int32 subscriptionId = 4;
 }
 
@@ -20,9 +20,9 @@ message UpdateWeatherDataJobData {
 }
 
 message SendWeatherUpdateEmailJobData {
-  int32 subscriptionId = 1;
-  string email = 2;
-  string city = 3;
-  string unsubscribeToken = 4;
+  string email = 1;
+  string city = 2;
+  string unsubscribeUrl = 3;
+  int32 subscriptionId = 4;
   WeatherData weatherData = 5;
 }

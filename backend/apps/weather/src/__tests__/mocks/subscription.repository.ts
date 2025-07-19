@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { ISubscriptionRepository } from "@common/shared/ports";
+import { ISubscriptionRepository } from "@/shared/ports";
 
 export const createMockSubscriptionRepository = (): jest.Mocked<ISubscriptionRepository> => ({
   findConfirmedByEmailAndCity: jest.fn(),

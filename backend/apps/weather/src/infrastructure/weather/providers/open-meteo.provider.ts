@@ -2,7 +2,7 @@ import {
   IWeatherProvider,
   WeatherData,
   weatherDataSchema,
-} from "@common/shared/ports";
+} from "@/shared/ports";
 import { HttpException, ServerErrorException } from "@common/shared";
 import { ILogger } from "@logger/logger.interface";
 import z from "zod";

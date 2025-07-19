@@ -1,9 +1,5 @@
 import { Job } from "bullmq";
-import {
-  ISubscriptionRepository,
-  IWeatherProvider,
-  IQueueService,
-} from "@common/shared/ports";
+import { ISubscriptionRepository, IWeatherProvider } from "@/shared/ports";
 import { ILogger } from "@logger/logger.interface";
 import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
 import {
@@ -11,6 +7,8 @@ import {
   UpdateWeatherDataJobData,
   WeatherData,
 } from "@common/generated/proto/job_pb";
+import { env } from "@/config/env";
+import { IQueueService } from "@common/shared/ports";
 
 export class UpdateWeatherDataProcessor {
   constructor(
@@ -37,11 +35,12 @@ export class UpdateWeatherDataProcessor {
       const { email, city, unsubscribeToken, id } = subscription;
 
       const weatherData = await this.weatherProvider.getWeatherData(city);
+      const unsubscribeUrl = `${env.API_URL}/api/unsubscribe/${unsubscribeToken}`;
 
       const emailJobData = new SendWeatherUpdateEmailJobData({
         email,
         city,
-        unsubscribeToken,
+        unsubscribeUrl,
         subscriptionId: id,
         weatherData: new WeatherData({ ...weatherData }),
       });

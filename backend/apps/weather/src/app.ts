@@ -3,8 +3,8 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-import { env } from "@common/config";
-import { getDb } from "@common/db";
+import { env } from "@/config/env";
+import { getDb } from "@/db";
 import { MetricsFactory } from "./infrastructure/metrics";
 import { errorMiddleware } from "./middleware";
 import {

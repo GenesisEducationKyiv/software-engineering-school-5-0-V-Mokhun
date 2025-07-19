@@ -1,8 +1,8 @@
+import { env } from "@/config/env";
 import { ILogger } from "@logger/logger.interface";
-import { env } from "@common/config";
 import { QUEUE_TYPES } from "@common/constants";
 import { IDatabase } from "@common/shared/ports";
-import { createRootConfig } from "@common/infrastructure/queue";
+import { createQueueService } from "@common/infrastructure/queue";
 import { createEmailService } from "@/infrastructure/email/email.factory";
 import { EmailLogRepository } from "@/infrastructure/repositories/email-log.repository";
 import {
@@ -10,6 +10,7 @@ import {
   createSendWeatherUpdateEmailWorker,
 } from "./jobs";
 import { WorkerConfig } from "@common/infrastructure/queue/types";
+import { createRootConfig } from "./config";
 
 export const composeWorkers = (db: IDatabase, logger: ILogger) => {
   const rootConnectionConfig = createRootConfig();

@@ -1,7 +1,7 @@
 import { Job } from "bullmq";
 import { JobProcessor } from "@common/infrastructure/queue/types";
 import { ConfirmEmailJobData } from "@common/generated/proto/job_pb";
-import { IEmailService, IEmailLogRepository } from "@common/shared/ports";
+import { IEmailService, IEmailLogRepository } from "@/shared/ports";
 import { ILogger } from "@logger/logger.interface";
 
 export class ConfirmEmailProcessor implements JobProcessor {
@@ -13,20 +13,14 @@ export class ConfirmEmailProcessor implements JobProcessor {
 
   async handle(job: Job<Uint8Array>) {
     const jobData = ConfirmEmailJobData.fromBinary(job.data);
-    const { email, city, confirmToken, subscriptionId } = jobData;
+    const { email, city, confirmUrl, subscriptionId } = jobData;
 
     try {
       await this.emailService.sendConfirmationEmail({
         to: email,
         city,
-        confirmToken,
+        confirmUrl,
       });
-
-      if (!subscriptionId) {
-        throw new Error(
-          "Subscription ID not found in job data after sending confirmation email."
-        );
-      }
 
       await this.emailLogRepo.create({
         subscriptionId,

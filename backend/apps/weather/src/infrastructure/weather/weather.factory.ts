@@ -1,5 +1,5 @@
 import { ILogger } from "@logger/logger.interface";
-import { IWeatherProvider } from "@common/shared/ports";
+import { IWeatherProvider } from "@/shared/ports";
 import { OpenMeteoProvider, WeatherApiProvider } from "./providers";
 import { WeatherProvider } from "./weather.provider";
 import { createCircuitBreakerProxy } from "@common/shared/circuit-breaker";

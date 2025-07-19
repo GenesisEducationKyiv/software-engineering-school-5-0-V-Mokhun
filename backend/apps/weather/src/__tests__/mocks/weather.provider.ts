@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { IWeatherProvider, WeatherData } from "@common/shared/ports";
+import { IWeatherProvider, WeatherData } from "@/shared/ports";
 import { mockWeatherData } from "./weather";
 
 export const createMockWeatherProvider = (): jest.Mocked<IWeatherProvider> => ({
