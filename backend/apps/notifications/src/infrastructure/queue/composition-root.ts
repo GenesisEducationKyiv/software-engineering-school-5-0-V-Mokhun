@@ -2,7 +2,6 @@ import { env } from "@/config/env";
 import { ILogger } from "@logger/logger.interface";
 import { QUEUE_TYPES } from "@common/constants";
 import { IDatabase } from "@common/shared/ports";
-import { createQueueService } from "@common/infrastructure/queue";
 import { createEmailService } from "@/infrastructure/email/email.factory";
 import { EmailLogRepository } from "@/infrastructure/repositories/email-log.repository";
 import {

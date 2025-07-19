@@ -1,5 +1,4 @@
 import { Job } from "bullmq";
-import { mockWeatherData } from "./weather";
 import { UpdateWeatherDataJobData } from "@common/generated/proto/job_pb";
 
 export const mockUpdateWeatherDataJobData = new UpdateWeatherDataJobData({
