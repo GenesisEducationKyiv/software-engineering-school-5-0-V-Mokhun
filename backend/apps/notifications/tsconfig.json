@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "../../dist/apps/notifications",
+    "tsBuildInfoFile": "../../dist/apps/notifications/.tsbuildinfo",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@common/*": ["../../packages/common/src/*"],
+      "@logger/*": ["../../packages/logger/src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    { "path": "../../packages/common" },
+    { "path": "../../packages/logger" }
+  ]
+}

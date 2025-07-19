@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../dist/packages/common",
+    "tsBuildInfoFile": "../../dist/packages/common/.tsbuildinfo",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@common/*": ["src/*"],
+      "@logger/*": ["../logger/src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "references": [{ "path": "../logger" }]
+}

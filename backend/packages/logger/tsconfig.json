@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../dist/packages/logger",
+    "tsBuildInfoFile": "../../dist/packages/logger/.tsbuildinfo",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@logger/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

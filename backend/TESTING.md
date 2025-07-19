@@ -21,7 +21,7 @@ npm run test:unit
 To run only the integration tests, execute the following command:
 
 ```bash
-npm run test:integration:ci
+npm run test:integration
 ```
 
 ## Running All Tests

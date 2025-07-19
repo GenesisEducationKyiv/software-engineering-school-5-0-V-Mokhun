@@ -46,8 +46,8 @@ services:
       timeout: 5s
       retries: 5
 
-  api-dev:
-    container_name: api-dev
+  weather-service-dev:
+    container_name: weather-service-dev
     env_file:
       - .env.development
     environment:
@@ -59,26 +59,79 @@ services:
     restart: always
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/weather/Dockerfile
+      target: development
     depends_on:
       db-dev:
         condition: service_healthy
       redis-dev:
         condition: service_healthy
     volumes:
-      - ./src:/app/src
+      - ./apps:/app/apps
+      - ./packages:/app/packages
       - ./prisma:/app/prisma
-      - ./tsconfig.json:/app/tsconfig.json
     develop:
       watch:
         - action: sync
-          path: ./src
-          target: ./src
+          path: ./apps/weather
+          target: ./apps/weather
           ignore:
             - node_modules/
         - action: rebuild
-          path: ./package.json
-    command: ["npm", "run", "dev"]
+          path: ./apps/weather/package.json
+          target: ./apps/weather/package.json
+        - action: sync
+          path: ./packages/common
+          target: ./packages/common
+          ignore:
+            - node_modules/
+        - action: sync
+          path: ./packages/logger
+          target: ./packages/logger
+          ignore:
+            - node_modules/
+    command: ["npm", "run", "dev", "--workspace=apps/weather"]
+
+  notifications-service-dev:
+    container_name: notifications-service-dev
+    env_file:
+      - .env.development
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-dev:5432/${POSTGRES_DB}
+    networks:
+      - weather-api-network-dev
+    restart: always
+    build:
+      context: .
+      dockerfile: apps/notifications/Dockerfile
+      target: development
+    depends_on:
+      db-dev:
+        condition: service_healthy
+      redis-dev:
+        condition: service_healthy
+    volumes:
+      - ./apps:/app/apps
+      - ./packages:/app/packages
+      - ./prisma:/app/prisma
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/notifications
+          target: ./apps/notifications
+          ignore:
+            - node_modules/
+        - action: sync
+          path: ./packages/common
+          target: ./packages/common
+          ignore:
+            - node_modules/
+        - action: sync
+          path: ./packages/logger
+          target: ./packages/logger
+          ignore:
+            - node_modules/
+    command: ["npm", "run", "dev", "--workspace=apps/notifications"]
 
   prometheus-dev:
     container_name: prometheus-dev

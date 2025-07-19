@@ -33,7 +33,6 @@ model Subscription {
   @@map("subscriptions")
 }
 
-// Could have used Redis?
 model WeatherCache {
   id          Int      @id @default(autoincrement())
   city        String   @unique

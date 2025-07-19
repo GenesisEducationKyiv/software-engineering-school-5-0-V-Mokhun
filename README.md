@@ -1,129 +1,113 @@
-# Weather Subscription Service
+# Weather Subscription Service 🌦️
 
-A Node.js application that provides weather updates for subscribed users. The service allows users to subscribe to weather updates for their chosen cities and receive updates at their preferred frequency (hourly or daily).
+This project is a resilient, microservices-based weather notification system. It allows users to subscribe to weather updates for specific cities and receive periodic email notifications. The application is designed to be scalable and maintainable, leveraging a modern backend architecture with Node.js, TypeScript, and Docker.
 
-## Live Demo
+## Key Features
 
-- Frontend: [https://website-w2h4.onrender.com](https://website-w2h4.onrender.com)
-- API: [https://software-school-genesis.onrender.com](https://software-school-genesis.onrender.com)
+- **User Subscriptions**: Subscribe to weather updates for any city.
+- **Email Confirmation**: Secure subscription process with email verification.
+- **Configurable Frequency**: Receive updates hourly or daily.
+- **Background Job Processing**: Asynchronous tasks like sending emails are handled by a dedicated worker service.
+- **Unsubscribe**: Easily manage and cancel subscriptions.
+
+## Architecture
+
+The system is built on a microservices architecture, with two main services:
+
+- **Weather Service**: A public-facing API that handles user interactions like subscribing, confirming, and unsubscribing.
+- **Notifications Service**: A background worker that processes jobs from a queue to send out emails and fetch weather data.
+
+For a detailed visual representation of the architecture, please see the [Architecture Diagram](backend/docs/app-architecture.md) and the [System Design Document](backend/docs/system-design.md).
 
 ## Tech Stack
 
-- **Backend**: Node.js with Express
-- **Database**: PostgreSQL
-- **Cache & Queue**: Redis with BullMQ for job scheduling
-- **Email Service**: SendGrid
-- **Testing**: Jest with Supertest
-- **Type Safety**: TypeScript
-- **API Validation**: Zod
-- **Containerization**: Docker & Docker Compose
+- **Backend**: **Node.js** with **Express** for building efficient and scalable server-side applications.
+- **Architecture**: **Microservices** using **npm workspaces** to create a modular and maintainable monorepo.
+- **Database**: **PostgreSQL** as the robust relational database for storing subscription data.
+- **Cache & Queue**: **Redis** with **BullMQ** for high-performance caching and managing background job queues.
+- **Email Service**: **SendGrid** for reliable email delivery.
+- **Testing**: **Jest** with **Supertest** for unit and integration testing.
+- **Type Safety**: **TypeScript** for robust, type-safe code.
+- **API Validation**: **Zod** for schema validation and type generation.
+- **Containerization**: **Docker & Docker Compose** for consistent development and production environments.
 
 ## Project Structure
 
+The backend is a monorepo containing multiple services and shared packages.
+
 ```
 backend/
-├── src/
-│   ├── __mocks__/       # Mock files
-│   ├── __tests__/        # Unit and integration tests
-│   ├── config/           # Environment and configuration setup
-│   ├── constants/        # Application-wide constants
-│   ├── db/               # Database client and utilities
-│   ├── infrastructure/   # External services and infrastructure logic
-│   │   ├── email/        # Email service implementation
-│   │   ├── queue/        # Queue management with BullMQ
-│   │   ├── repositories/ # Database-specific repository implementations
-│   │   └── weather/      # Weather provider implementation
-│   ├── middleware/       # Express middlewares
-│   ├── modules/          # Feature modules
-│   │   ├── subscription/ # Subscription management
-│   │   └── weather/      # Weather-related endpoints
-│   ├── shared/           # Code shared across different modules
-│   │   ├── logger/       # Logger implementation
-│   │   └── ports/        # Interfaces for repositories and services (ports)
-│   ├── types/            # Global type definitions
-│   ├── app.ts            # Express app setup
-│   ├── index.ts          # Application entry point
-│   └── types.d.ts        # Global TypeScript declarations
-├── prisma/               # Database schema and migrations
+├── apps/
+│   ├── weather/          # Handles all user-facing HTTP requests (subscribing, confirming, etc.). It's the primary entry point for clients.
+│   └── notifications/    # A background worker service that processes asynchronous tasks like sending emails. It does not expose any API endpoints.
+├── packages/
+│   ├── common/           # A shared library with code for DB clients, queue configs, shared types, and repository interfaces.
+│   └── logger/           # A shared logger implementation.
+├── prisma/               # Database schema, migrations, and seeds.
+├── docker-compose.yml    # Docker Compose for production.
+├── docker-compose.dev.yml # Docker Compose for development.
+└── package.json          # Root package.json with workspace configurations.
 ```
 
-# All commands should be run from 'backend' folder
+## Getting Started
+
+All commands should be run from the `backend` directory.
 
 ```bash
 cd backend
 ```
 
-## Environment Setup
+### Environment Setup
 
-1. Copy the example environment file:
+1.  **Copy the Environment File**:
 
-   ```bash
-   cp .env.example .env
-   ```
+    ```bash
+    cp .env.example .env
+    ```
 
-2. Configure the following environment variables:
+2.  **Configure Environment Variables**:
+    Update the `.env` file with your credentials. These are essential for the application to connect to external services and the database.
 
-- `SENDGRID_API_KEY`: SendGrid API key
-- `SENDGRID_FROM_EMAIL`: SendGrid from email
-- `WEATHER_API_KEY`: WeatherAPI.com API key
+    - `SENDGRID_API_KEY`: Your API key for the SendGrid email service.
+    - `SENDGRID_FROM_EMAIL`: The email address to send notifications from.
+    - `WEATHER_API_KEY`: Your API key for WeatherAPI.com.
 
-## Running with Docker
+## Running the Application with Docker
+
+The easiest way to get started is by using Docker Compose, which orchestrates all the services, including the database and cache.
 
 ### Development
 
 ```bash
-# Build containers
+# Build and create the containers. The -d flag runs them in the background.
 npm run docker:build:dev
 
-# Start services
+# Start all services.
 npm run docker:run:dev
 ```
 
 ### Production
 
 ```bash
-# Build containers
+# Build the production-ready containers.
 npm run docker:build
 
-# Start services
+# Start the services in production mode.
 npm run docker:run
-```
-
-## Local Development
-
-### Database Setup
-
-Run migrations without Docker:
-
-```bash
-# Development environment
-npm run db:migrate-local:dev
-
-# Production environment
-npm run db:migrate-local
-```
-
-### Starting the Application
-
-```bash
-# Install dependencies
-npm install
-
-# Generate Prisma client
-npm run db:generate
-
-# Start development server
-npm run dev
 ```
 
 ## Testing
 
-The project includes both unit and integration tests. Run them with:
+The test suite includes unit tests for individual components and integration tests to verify the interactions between different parts of the services.
+
+Before running the tests, ensure you have generated the Prisma client:
 
 ```bash
 # if you didn't run prisma generate, run it first
 npm run db:generate
 ```
+
+Then, run all tests with:
 
 ```bash
 npm run test
