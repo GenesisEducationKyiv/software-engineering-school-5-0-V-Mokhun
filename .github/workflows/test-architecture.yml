@@ -1,4 +1,4 @@
-name: Test Integration
+name: Test Architecture
 
 on: [push, pull_request]
 
@@ -22,8 +22,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate db types
-        run: npm run db:generate
-
-      - name: Run integration tests
-        run: npm run test:integration
+      - name: Run architecture tests
+        run: npm run test:arch
