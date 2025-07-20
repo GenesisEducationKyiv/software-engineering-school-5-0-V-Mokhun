@@ -30,18 +30,6 @@ CREATE TABLE "weather_cache" (
     CONSTRAINT "weather_cache_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "email_logs" (
-    "id" SERIAL NOT NULL,
-    "subscription_id" INTEGER NOT NULL,
-    "status" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
-    "error_message" TEXT,
-    "sent_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "email_logs_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "subscriptions_confirmToken_key" ON "subscriptions"("confirmToken");
 
@@ -53,9 +41,3 @@ CREATE UNIQUE INDEX "subscriptions_email_city_key" ON "subscriptions"("email", "
 
 -- CreateIndex
 CREATE UNIQUE INDEX "weather_cache_city_key" ON "weather_cache"("city");
-
--- CreateIndex
-CREATE INDEX "email_logs_subscription_id_idx" ON "email_logs"("subscription_id");
-
--- AddForeignKey
-ALTER TABLE "email_logs" ADD CONSTRAINT "email_logs_subscription_id_fkey" FOREIGN KEY ("subscription_id") REFERENCES "subscriptions"("id") ON DELETE CASCADE ON UPDATE CASCADE;

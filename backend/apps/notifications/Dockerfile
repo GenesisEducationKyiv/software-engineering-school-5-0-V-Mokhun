@@ -24,7 +24,6 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy all necessary configuration files.
 COPY package.json package-lock.json ./
 COPY tsconfig.json tsconfig.base.json ./
-COPY prisma ./prisma/
 
 # Copy all source code for all apps and packages.
 # This is necessary for the root `tsc --build` to succeed.
@@ -32,10 +31,13 @@ COPY apps ./apps/
 COPY packages ./packages/
 
 # Generate Prisma client which is a build-time dependency.
-RUN npm run db:generate
+RUN npm run db:generate --workspace=apps/notifications
 
 # Build all dependencies and the app itself from the root.
 RUN npm run build
+
+# Copy the generated Prisma client to the dist folder.
+RUN cp -R apps/notifications/src/generated dist/apps/notifications/generated
 
 # --- Development Stage ---
 # For development, we want all dependencies and live-reloading.
@@ -54,8 +56,8 @@ RUN chown -R expressjs:expressjs /app
 USER expressjs
 
 # We still need the entrypoint script.
-COPY --chown=expressjs:expressjs apps/notifications/docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+COPY --chown=expressjs:expressjs apps/notifications/docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 # The default command will be overridden by docker-compose, but we set it for clarity.
@@ -82,11 +84,9 @@ COPY --from=builder /app/dist/packages/logger ./dist/packages/logger
 
 # Copy the lean, production-only node_modules.
 COPY --from=production-deps /app/node_modules ./node_modules
-# Copy the generated Prisma client from the builder stage.
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Copy Prisma schema and package.json, which are needed at runtime.
-COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/apps/notifications/prisma ./prisma
 COPY package.json .
 # Also copy the app's package.json, it might be useful for context.
 COPY apps/notifications/package.json ./
@@ -98,8 +98,8 @@ RUN chown -R expressjs:expressjs /app
 USER expressjs
 
 # Copy and set up the entrypoint script, which is specific to this app.
-COPY --chown=expressjs:expressjs apps/notifications/docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+COPY --chown=expressjs:expressjs apps/notifications/docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
