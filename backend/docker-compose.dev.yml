@@ -4,7 +4,7 @@ services:
     image: postgres:17.5
     container_name: db-dev
     env_file:
-      - .env.development
+      - apps/weather/.env.development
     volumes:
       - ./db-data/dev:/var/lib/postgresql/data
     ports:
@@ -22,7 +22,7 @@ services:
     image: redis:8.0
     container_name: redis-dev
     env_file:
-      - .env.development
+      - apps/weather/.env.development
     ports:
       - 6380:6379
     networks:
@@ -49,7 +49,7 @@ services:
   weather-service-dev:
     container_name: weather-service-dev
     env_file:
-      - .env.development
+      - apps/weather/.env.development
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-dev:5432/${POSTGRES_DB}
     ports:
@@ -95,7 +95,7 @@ services:
   notifications-service-dev:
     container_name: notifications-service-dev
     env_file:
-      - .env.development
+      - apps/notifications/.env.development
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-dev:5432/${POSTGRES_DB}
     networks:
