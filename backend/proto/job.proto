@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package job;
+
+message WeatherData {
+  float temperature = 1;
+  int32 humidity = 2;
+  string description = 3;
+}
+
+message ConfirmEmailJobData {
+  string email = 1;
+  string city = 2;
+  string confirmUrl = 3;
+  int32 subscriptionId = 4;
+}
+
+message UpdateWeatherDataJobData {
+  int32 subscriptionId = 1;
+}
+
+message SendWeatherUpdateEmailJobData {
+  string email = 1;
+  string city = 2;
+  string unsubscribeUrl = 3;
+  int32 subscriptionId = 4;
+  WeatherData weatherData = 5;
+}

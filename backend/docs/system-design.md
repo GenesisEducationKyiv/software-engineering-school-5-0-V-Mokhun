@@ -81,48 +81,58 @@
 
 ```mermaid
 graph TB
-    User[Users] --> LB[Load Balancer]
-    LB --> API[Express API Server]
+    subgraph "User Interaction"
+        User[Users]
+    end
 
-    API --> PG[(PostgreSQL)]
-    API --> Redis[(Redis)]
-    API --> Weather[WeatherAPI.com]
-    API --> Email[SendGrid]
+    subgraph "Weather Service"
+        API[Express API Server]
+    end
 
-    Redis --> Queue[BullMQ Queues]
-    Queue --> Worker[Background Workers]
-    Worker --> PG
-    Worker --> Weather
-    Worker --> Email
-
-    subgraph "Data Layer"
-        PG
-        Redis
+    subgraph "Notifications Service"
+        Worker[Background Workers]
+    end
+    
+    subgraph "Data & Communication Layer"
+        PG[(PostgreSQL)]
+        Redis[(Redis / BullMQ)]
     end
 
     subgraph "External Services"
-        Weather
-        Email
+        WeatherAPI[WeatherAPI.com]
+        Email[SendGrid]
     end
+
+    User --> API
+    API -- "Manages subscriptions" --> PG
+    API -- "Dispatches jobs" --> Redis
+    
+    Worker -- "Pulls jobs" --> Redis
+    Worker -- "Fetches sub data" --> PG
+    Worker -- "Fetches weather data" --> WeatherAPI
+    Worker -- "Sends emails" --> Email
+
 ```
 
 **Core Components:**
 
-1. **API Layer**: Express.js REST API
-2. **Database Layer**: PostgreSQL with Prisma ORM
-3. **Cache/Queue Layer**: Redis with BullMQ
-4. **External Integrations**: WeatherAPI.com, SendGrid
+1.  **Weather Service**: An Express.js REST API responsible for handling user-facing requests, such as subscriptions, confirmations, and unsubscribes. It is the single entry point for users.
+2.  **Notifications Service**: A service composed of background workers that listen to job queues. It is responsible for all asynchronous tasks, including sending confirmation emails, fetching weather data, and sending weather update emails.
+3.  **Database Layer**: PostgreSQL with Prisma ORM, used as the main persistence layer for subscriptions, weather data cache, and email logs.
+4.  **Cache/Queue Layer**: Redis with BullMQ, used for queueing background jobs and for caching. It acts as the communication channel between the Weather and Notifications services.
+5.  **External Integrations**: WeatherAPI.com for weather data and SendGrid for sending emails.
 
 ## 4. Detailed Component Design
 
-### 4.1 API Service & Endpoints
+### 4.1 Weather Service & Endpoints
 
 **Responsibilities:**
 
-- Handle API requests
-- Validate and sanitize inputs
-- Call business logic services
-- Handle errors and logging
+- Handle all synchronous user-facing API requests.
+- Validate and sanitize inputs.
+- Manage subscription lifecycle (create, confirm, delete).
+- Dispatch jobs to the queue for asynchronous processing by the Notifications Service.
+- Handle errors and logging.
 
 **REST API Endpoints:**
 
@@ -139,12 +149,13 @@ GET  /api/weather?city={city}
 GET  /health
 ```
 
-### 4.2 Queue System Design
+### 4.2 Notifications Service & Queue System
 
 **Responsibilities:**
 
-- Process background jobs
-- Handle job scheduling, retries, failures, and dead letters
+- Process background jobs from the BullMQ queues.
+- Handle job scheduling, retries, and failures.
+- Integrate with external services like SendGrid and WeatherAPI.com.
 
 **Queue System:**
 
@@ -158,12 +169,12 @@ BullMQ Job System
 │   ├── confirm_email
 │   ├── update_weather_data
 │   └── send_weather_update_email
-├── Workers (with concurrency)
-└── Schedulers (cron-based)
+└── Workers (running in Notifications Service)
 ```
 
 **Scheduling Strategy:**
 
+- The Weather service schedules jobs upon subscription confirmation.
 - **Hourly**: `0 * * * *` (every hour)
 - **Daily**: `0 8 * * *` (8 AM daily)
 
@@ -204,50 +215,51 @@ PostgreSQL WeatherCache Table
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant API as API Server
+    participant WS as Weather Service (API)
     participant DB as PostgreSQL
     participant Q as Job Queue
+    participant NS as Notifications Service (Worker)
     participant E as SendGrid
 
-    U->>API: POST /api/subscribe
-    API->>DB: Create subscription (unconfirmed)
-    API->>Q: Queue confirmation email job
-    API->>U: 200 OK
+    U->>WS: POST /api/subscribe
+    WS->>DB: Create subscription (unconfirmed)
+    WS->>Q: Dispatch 'confirm-email' job
+    WS->>U: 200 OK
 
-    Q->>E: Send confirmation email
+    NS->>Q: Consume 'confirm-email' job
+    NS->>E: Send confirmation email
     E->>U: Email with confirmation link
 
-    U->>API: GET /api/confirm/:token
-    API->>DB: Confirm subscription
-    API->>Q: Schedule weather update jobs
-    API->>U: 200 OK (confirmed)
+    U->>WS: GET /api/confirm/:token
+    WS->>DB: Confirm subscription
+    WS->>Q: Schedule 'update-weather-data' jobs
+    WS->>U: 200 OK (confirmed)
 ```
 
 ### 5.2 Weather Update Process Diagram
 
 ```mermaid
 sequenceDiagram
-    participant S as Scheduler
-    participant Q as Weather Queue
-    participant W as Worker
-    participant Cache as Cache Layer
-    participant API as WeatherAPI
+    participant S as Scheduler (in Weather Service)
+    participant Q as Job Queue
+    participant NS as Notifications Service (Worker)
+    participant WeatherAPI as WeatherAPI.com
     participant DB as PostgreSQL
-    participant Email as Email Queue
+    participant E as SendGrid
 
-    S->>Q: Schedule weather update job
-    Q->>W: Process job (subscriptionId)
-    W->>DB: Get subscription details
-    W->>Cache: Check weather cache
-
-    alt Cache Hit
-        Cache->>W: Return cached data
-    else Cache Miss
-        W->>API: Fetch weather data
-        API->>W: Weather response
-        W->>Cache: Update cache
+    S->>Q: Schedules recurring 'update-weather-data' job
+    
+    loop For each scheduled job
+        NS->>Q: Consume 'update-weather-data' job
+        NS->>DB: Get subscription details
+        NS->>WeatherAPI: Fetch weather data
+        WeatherAPI->>NS: Weather response
+        NS->>Q: Dispatch 'send-weather-update-email' job
     end
 
-    W->>Email: Queue email notification
-    W->>DB: Update lastSentAt timestamp
+    loop For each weather update email job
+        NS->>Q: Consume 'send-weather-update-email' job
+        NS->>E: Send weather update email
+        NS->>DB: Log email status
+    end
 ```

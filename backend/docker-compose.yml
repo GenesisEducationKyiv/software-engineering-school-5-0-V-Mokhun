@@ -46,8 +46,8 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
-    container_name: api
+  weather-service:
+    container_name: weather-service
     env_file:
       - .env
     ports:
@@ -57,13 +57,28 @@ services:
     restart: always
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/weather/Dockerfile
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["npm", "run", "start"]
+
+  notifications-service:
+    container_name: notifications-service
+    env_file:
+      - .env
+    networks:
+      - weather-api-network
+    restart: always
+    build:
+      context: .
+      dockerfile: apps/notifications/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   prometheus:
     container_name: prometheus

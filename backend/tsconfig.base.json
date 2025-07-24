@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node16",
+    "target": "es2022",
+    "module": "node16",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "composite": true,
+    "declaration": true,
+    "plugins": [{ "transform": "typescript-transform-paths" }]
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
+}
