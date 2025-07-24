@@ -1,13 +1,13 @@
 const config = {
   development: {
-    apiUrl: "http://localhost:8000/api",
+    API_URL: "http://localhost:8000",
   },
   production: {
-    apiUrl: "https://software-school-genesis.onrender.com/api",
+    API_URL: "https://software-school-genesis.onrender.com",
   },
 };
 
 const env =
-  window.location.hostname === "localhost" ? "development" : "production";
+  window.location.protocol === "http:" ? "development" : "production";
 
 window.API_CONFIG = config[env];
