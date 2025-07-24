@@ -50,8 +50,6 @@ services:
     container_name: weather-service-dev
     env_file:
       - apps/weather/.env.development
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-dev:5432/${POSTGRES_DB}
     ports:
       - 8001:8000
     networks:
@@ -69,7 +67,6 @@ services:
     volumes:
       - ./apps:/app/apps
       - ./packages:/app/packages
-      - ./prisma:/app/prisma
     develop:
       watch:
         - action: sync
@@ -96,8 +93,6 @@ services:
     container_name: notifications-service-dev
     env_file:
       - apps/notifications/.env.development
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db-dev:5432/${POSTGRES_DB}
     networks:
       - weather-api-network-dev
     restart: always
@@ -113,7 +108,6 @@ services:
     volumes:
       - ./apps:/app/apps
       - ./packages:/app/packages
-      - ./prisma:/app/prisma
     develop:
       watch:
         - action: sync

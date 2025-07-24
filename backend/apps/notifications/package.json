@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tspc",
     "start": "node dist/index.js",
-    "dev": "npm run db:generate && dotenv -e .env.development -- nodemon --watch 'src/**/*.ts' --exec 'ts-node -r tsconfig-paths/register' src/index.ts",
+    "dev": "npm run db:generate && dotenv -e .env.development -- nodemon --watch 'src/**/*.ts' --exec 'ts-node -r tsconfig-paths/register -P tsconfig.dev.json' src/index.ts",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "type-check": "tsc --noEmit",

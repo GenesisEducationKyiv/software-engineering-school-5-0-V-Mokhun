@@ -46,6 +46,8 @@ FROM deps AS development
 RUN apt-get update && apt-get install -y netcat-traditional && rm -rf /var/lib/apt/lists/*
 
 # Copy root configurations. The apps/packages will be mounted via docker-compose.
+COPY --from=builder /app/apps/weather/prisma ./prisma
+COPY package.json .
 COPY tsconfig.json tsconfig.base.json ./
 
 # Create a non-root user for security.
