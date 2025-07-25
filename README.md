@@ -38,22 +38,12 @@ The backend is a monorepo containing multiple services and shared packages.
 ```
 backend/
 ├── apps/
-│   ├── weather/          # Handles all user-facing HTTP requests (subscribing, confirming, etc.).
-│   │   ├── src/            # Service source code.
-│   │   ├── prisma/         # Database schema, migrations, and seeds.
-│   │   ├── .env.example    # Example environment variables.
-│   │   ├── Dockerfile      # Docker configuration for the service.
-│   │   └── package.json    # Service-specific dependencies and scripts.
-│   └── notifications/    # A background worker that processes jobs from a queue to send out emails.
-│       ├── src/            # Service source code.
-│       ├── prisma/         # Database schema, migrations, and seeds.
-│       ├── .env.example    # Example environment variables.
-│       ├── Dockerfile      # Docker configuration for the service.
-│       └── package.json    # Service-specific dependencies and scripts.
+│   ├── weather/          # Handles all user-facing HTTP requests (subscribing, confirming, etc.). It's the primary entry point for clients.
+│   └── notifications/    # A background worker service that processes asynchronous tasks like sending emails. It does not expose any API endpoints.
 ├── packages/
 │   ├── common/           # A shared library with code for DB clients, queue configs, shared types, and repository interfaces.
 │   └── logger/           # A shared logger implementation.
-├── proto/                # Protocol Buffer definitions for inter-service communication.
+├── prisma/               # Database schema, migrations, and seeds.
 ├── docker-compose.yml    # Docker Compose for production.
 ├── docker-compose.dev.yml # Docker Compose for development.
 └── package.json          # Root package.json with workspace configurations.
@@ -67,9 +57,20 @@ All commands should be run from the `backend` directory.
 cd backend
 ```
 
-## Environment Setup
+### Environment Setup
 
-Each service requires its own environment file. You'll need to create a `.env` or `.env.development` file inside each app's directory (i.e., `apps/weather/` and `apps/notifications/`). You can use the `.env.example` files in each directory as a template.
+1.  **Copy the Environment File**:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+2.  **Configure Environment Variables**:
+    Update the `.env` file with your credentials. These are essential for the application to connect to external services and the database.
+
+    - `SENDGRID_API_KEY`: Your API key for the SendGrid email service.
+    - `SENDGRID_FROM_EMAIL`: The email address to send notifications from.
+    - `WEATHER_API_KEY`: Your API key for WeatherAPI.com.
 
 ## Running the Application with Docker
 

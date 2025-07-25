@@ -1,7 +1,22 @@
+import { config } from "dotenv";
+import { expand } from "dotenv-expand";
 import path, { join } from "path";
-import { z } from "zod";
+import { z, ZodType, ZodTypeDef } from "zod";
 
-export const createEnv = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) => {
+export const loadEnv = () => {
+  let envFile = ".env";
+  if (process.env.NODE_ENV === "development") {
+    envFile = ".env.development";
+  } else if (process.env.NODE_ENV === "test") {
+    envFile = ".env.test";
+  }
+  const envPath = path.resolve(join(__dirname, "../../../..", envFile));
+  expand(config({ path: envPath }));
+};
+
+export const createEnv = <T extends z.ZodRawShape>(
+  schema: z.ZodObject<T>
+) => {
   const parsed = schema.safeParse(process.env);
 
   if (!parsed.success) {

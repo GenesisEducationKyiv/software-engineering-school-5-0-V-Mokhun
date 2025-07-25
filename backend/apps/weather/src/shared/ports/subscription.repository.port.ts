@@ -1,4 +1,4 @@
-import { Prisma, Subscription } from "@db";
+import { Prisma, Subscription } from "@prisma/client";
 
 export type SubscriptionCreate = Prisma.SubscriptionUpsertArgs["create"];
 

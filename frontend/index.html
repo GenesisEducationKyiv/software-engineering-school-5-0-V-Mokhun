@@ -8,48 +8,43 @@
 	</head>
 	<body>
 		<div class="container">
-			<header class="site-header">
-				<div class="logo">
-					<img src="https://img.icons8.com/color/48/000000/cloud.png" alt="Weather Service Logo">
-					<h1>Weather Service</h1>
-				</div>
-				<nav class="site-nav">
-					<ul>
-						<li><a href="index.html" class="active">Subscribe</a></li>
-						<li><a href="check-weather.html">Check Weather</a></li>
-					</ul>
-				</nav>
+			<header>
+				<h1>Weather Subscription Service</h1>
+				<p>Get weather updates for your favorite city!</p>
 			</header>
 
 			<main>
-				<section id="subscribe-section" class="page-section">
-					<div class="subscription-form">
-						<h2>Subscribe to Weather Updates</h2>
-						<p>Get daily or hourly weather updates for your favorite city!</p>
-						<form id="subscriptionForm">
-							<div class="form-group">
-								<label for="email">Email Address</label>
-								<input type="email" id="email" name="email" required placeholder="Enter your email">
-							</div>
-	
-							<div class="form-group">
-								<label for="city">City</label>
-								<input type="text" id="city" name="city" required placeholder="Enter city name">
-							</div>
-	
-							<div class="form-group">
-								<label for="frequency">Update Frequency</label>
-								<select id="frequency" name="frequency" required>
-									<option selected value="hourly">Hourly</option>
-									<option value="daily">Daily</option>
-								</select>
-							</div>
-	
-							<button type="submit" class="submit-btn">Subscribe</button>
-						</form>
-						<div id="feedback" class="feedback hidden"></div>
+				<div class="subscription-form">
+					<h2>Subscribe to Weather Updates</h2>
+					<form id="subscriptionForm">
+						<div class="form-group">
+							<label for="email">Email Address</label>
+							<input type="email" id="email" name="email" required placeholder="Enter your email">
+						</div>
+
+						<div class="form-group">
+							<label for="city">City</label>
+							<input type="text" id="city" name="city" required placeholder="Enter city name">
+						</div>
+
+						<div class="form-group">
+							<label for="frequency">Update Frequency</label>
+							<select id="frequency" name="frequency" required>
+								<option selected value="hourly">Hourly</option>
+								<option value="daily">Daily</option>
+							</select>
+						</div>
+
+						<button type="submit" class="submit-btn">Subscribe</button>
+					</form>
+				</div>
+
+				<div id="feedback" class="feedback hidden">
+					<div class="feedback-content">
+						<h3 id="feedbackTitle"></h3>
+						<p id="feedbackMessage"></p>
 					</div>
-				</section>
+				</div>
 			</main>
 		</div>
 		<script src="config.js"></script>

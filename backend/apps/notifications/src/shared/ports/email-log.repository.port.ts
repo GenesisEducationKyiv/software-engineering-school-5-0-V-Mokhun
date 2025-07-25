@@ -1,4 +1,4 @@
-import { Prisma } from "@db";
+import { Prisma } from "@prisma/client";
 
 export type EmailLogCreateInput = Prisma.EmailLogCreateArgs["data"];
 
