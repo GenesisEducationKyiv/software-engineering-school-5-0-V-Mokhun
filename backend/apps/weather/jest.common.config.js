@@ -6,6 +6,7 @@ module.exports = {
   moduleNameMapper: {
     "^@common/(.*)$": "<rootDir>/../../packages/common/src/$1",
     "^@logger/(.*)$": "<rootDir>/../../packages/logger/src/$1",
+    "^@db$": "<rootDir>/src/generated/db",
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   transform: {

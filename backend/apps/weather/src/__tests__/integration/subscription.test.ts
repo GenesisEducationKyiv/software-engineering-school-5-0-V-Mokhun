@@ -1,5 +1,6 @@
 import { app } from "@/app";
-import { FREQUENCY_TO_CRON, JOB_TYPES, QUEUE_TYPES } from "@common/constants";
+import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
+import { FREQUENCY_TO_CRON } from "@/constants";
 import { db } from "@/db";
 import { SubscriptionCreate } from "@/shared/ports";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";

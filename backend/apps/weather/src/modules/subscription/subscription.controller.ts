@@ -1,5 +1,5 @@
 import { ConflictException } from "@common/shared";
-import { Subscription } from "@prisma/client";
+import { Subscription } from "@db";
 import { NextFunction, Response } from "express";
 import { SubscribeBody } from "./subscription.schema";
 import {

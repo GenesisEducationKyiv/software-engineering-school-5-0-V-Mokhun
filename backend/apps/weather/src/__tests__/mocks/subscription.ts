@@ -1,4 +1,4 @@
-import { Frequency } from "@prisma/client";
+import { Frequency } from "@db";
 
 export const mockSubscription = {
   id: 1,
