@@ -1,47 +1,60 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE_URL = window.API_CONFIG.API_URL;
-
-  const subscriptionForm = document.getElementById("subscriptionForm");
-
+  const form = document.getElementById("subscriptionForm");
   const feedback = document.getElementById("feedback");
+  const feedbackTitle = document.getElementById("feedbackTitle");
+  const feedbackMessage = document.getElementById("feedbackMessage");
 
-  subscriptionForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const submitBtn = subscriptionForm.querySelector(".submit-btn");
-    const originalBtnText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Subscribing...";
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    const formData = new FormData(subscriptionForm);
-    const data = Object.fromEntries(formData.entries());
+    const formData = new FormData(form);
+    const data = {
+      email: formData.get("email"),
+      city: formData.get("city"),
+      frequency: formData.get("frequency"),
+    };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/subscribe`, {
+      const response = await fetch(`${window.API_CONFIG.apiUrl}/subscribe`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(data),
       });
+
       const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || "Something went wrong");
+
+      if (response.ok) {
+        showFeedback(
+          "Success!",
+          "Please check your email to confirm your subscription.",
+          "success"
+        );
+        form.reset();
+      } else {
+        showFeedback(
+          "Error",
+          result.message || "Something went wrong. Please try again.",
+          "error"
+        );
       }
-      showFeedback(
-        "Please check your email to confirm your subscription.",
-        "success"
-      );
     } catch (error) {
-      showFeedback(error.message, "error");
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalBtnText;
+      showFeedback(
+        "Error",
+        "Failed to connect to the server. Please try again later.",
+        "error"
+      );
     }
   });
 
-  function showFeedback(message, type) {
-    feedback.textContent = message;
+  function showFeedback(title, message, type) {
+    feedbackTitle.textContent = title;
+    feedbackMessage.textContent = message;
     feedback.className = `feedback ${type}`;
     feedback.classList.remove("hidden");
 
+    // Hide feedback after 5 seconds
     setTimeout(() => {
       feedback.classList.add("hidden");
     }, 5000);

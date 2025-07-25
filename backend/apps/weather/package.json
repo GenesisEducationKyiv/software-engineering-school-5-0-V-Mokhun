@@ -6,28 +6,21 @@
   "scripts": {
     "build": "tspc",
     "start": "node dist/index.js",
-    "dev": "npm run db:generate && dotenv -e .env.development -- nodemon --watch 'src/**/*.ts' --exec 'ts-node -r tsconfig-paths/register -P tsconfig.dev.json' src/index.ts",
+    "dev": "npm run db:generate && dotenv -e ../../.env.development -- nodemon --watch 'src/**/*.ts' --exec 'ts-node -r tsconfig-paths/register' src/index.ts",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "type-check": "tsc --noEmit",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "cross-env NODE_ENV=test jest --config jest.unit.config.js --silent --runInBand",
-    "test:integration:local": "dotenv -e .env.test -- sh -c 'npm run db:migrate-test && jest --config jest.integ.config.js --runInBand --silent'",
+    "test:integration:local": "dotenv -e ../../.env.test -- sh -c 'npm run db:migrate-test && jest --config jest.integ.config.js --runInBand --silent'",
     "test:integration": "bash ./scripts/run-integration-tests.sh",
     "test:arch": "dependency-cruise --config .dependency-cruiser.js src",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:migrate-local": "dotenv -e .env -- sh -c 'DATABASE_URL=\"$DATABASE_URL_EXTERNAL\" npx prisma migrate dev'",
-    "db:migrate-local:dev": "dotenv -e .env.development -- sh -c 'DATABASE_URL=\"$DATABASE_URL_EXTERNAL\" npx prisma migrate dev'",
-    "db:migrate-test": "dotenv -e .env.test -- sh -c 'DATABASE_URL=\"$DATABASE_URL_EXTERNAL\" npx prisma migrate reset --force'",
-    "db:reset": "prisma migrate reset --force",
-    "db:reset-local": "dotenv -e .env -- sh -c 'DATABASE_URL=\"$DATABASE_URL_EXTERNAL\" npx prisma migrate reset --force'",
-    "db:reset-local:dev": "dotenv -e .env.development -- sh -c 'DATABASE_URL=\"$DATABASE_URL_EXTERNAL\" npx prisma migrate reset --force'",
-    "db:seed": "prisma db seed"
+    "db:migrate-test": "dotenv -e ../../.env.test -- sh -c 'DATABASE_URL=\"$DATABASE_URL_EXTERNAL\" npx prisma migrate reset --force'"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts",
-    "schema": "prisma/schema.prisma"
+    "seed": "ts-node ../../prisma/seed.ts",
+    "schema": "../../prisma/schema.prisma"
   },
   "keywords": [],
   "author": "",
@@ -35,6 +28,7 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "6.5.0",
+    "@sendgrid/mail": "^8.1.5",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",

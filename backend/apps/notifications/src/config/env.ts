@@ -1,20 +1,5 @@
-import { createEnv } from "@common/config/env";
-import { config } from "dotenv";
-import { expand } from "dotenv-expand";
-import path, { join } from "path";
+import { createEnv, loadEnv } from "@common/config/env";
 import { z } from "zod";
-
-export const loadEnv = () => {
-  let envFile = ".env";
-  if (process.env.NODE_ENV === "development") {
-    envFile = ".env.development";
-  } else if (process.env.NODE_ENV === "test") {
-    envFile = ".env.test";
-  }
-
-  const envPath = path.resolve(join(__dirname, "../..", envFile));
-  expand(config({ path: envPath }));
-};
 
 loadEnv();
 
@@ -30,4 +15,4 @@ const notificationsEnvSchema = z
   })
   .passthrough();
 
-export const env = createEnv(notificationsEnvSchema);
+export const env = createEnv(notificationsEnvSchema); 

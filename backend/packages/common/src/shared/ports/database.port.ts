@@ -1,4 +1,4 @@
-import { PrismaClient } from "@db";
+import { PrismaClient } from "@prisma/client";
 
 export type IDatabase = Omit<
   PrismaClient,

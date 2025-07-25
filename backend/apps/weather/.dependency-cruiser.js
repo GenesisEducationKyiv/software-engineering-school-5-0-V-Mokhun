@@ -23,10 +23,7 @@ module.exports = {
         "The application layer should only depend on domain ports, not concrete infrastructure.",
       severity: "error",
       from: { path: layers.application },
-      to: {
-        path: layers.infrastructure,
-        pathNot: "packages/common/src/infrastructure/*",
-      },
+      to: { path: layers.infrastructure },
     },
     {
       name: "presentation-should-not-depend-on-infrastructure",

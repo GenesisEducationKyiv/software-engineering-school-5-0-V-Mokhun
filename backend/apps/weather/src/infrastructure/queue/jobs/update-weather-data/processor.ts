@@ -7,6 +7,7 @@ import {
   UpdateWeatherDataJobData,
   WeatherData,
 } from "@common/generated/proto/job_pb";
+import { env } from "@/config/env";
 import { IQueueService } from "@common/shared/ports";
 
 export class UpdateWeatherDataProcessor {
@@ -34,7 +35,7 @@ export class UpdateWeatherDataProcessor {
       const { email, city, unsubscribeToken, id } = subscription;
 
       const weatherData = await this.weatherProvider.getWeatherData(city);
-      const unsubscribeUrl = `/api/unsubscribe/${unsubscribeToken}`;
+      const unsubscribeUrl = `${env.API_URL}/api/unsubscribe/${unsubscribeToken}`;
 
       const emailJobData = new SendWeatherUpdateEmailJobData({
         email,

@@ -1,6 +1,6 @@
 import { ISubscriptionRepository, SubscriptionCreate } from "@/shared/ports";
-import { IDatabase } from "@/shared/ports/database.port";
-import { Subscription } from "@db";
+import { IDatabase } from "@common/shared/ports/database.port";
+import { Subscription } from "@prisma/client";
 
 export class SubscriptionRepository implements ISubscriptionRepository {
   constructor(private readonly db: IDatabase) {}

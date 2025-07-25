@@ -4,7 +4,7 @@ import { env } from "@/config/env";
 import { QUEUE_TYPES } from "@common/constants";
 import { createQueueService } from "@common/infrastructure/queue";
 import { WorkerConfig } from "@common/infrastructure/queue/types";
-import { IDatabase } from "@/shared/ports";
+import { IDatabase } from "@common/shared/ports";
 import { ILogger } from "@logger/logger.interface";
 import { createUpdateWeatherDataWorker } from "./jobs/update-weather-data";
 import { createRootConfig } from "./config";

@@ -1,4 +1,4 @@
-import { WeatherCache } from "@db";
+import { WeatherCache } from "@prisma/client";
 import { WeatherData } from "./weather.port";
 
 export interface IWeatherRepository {

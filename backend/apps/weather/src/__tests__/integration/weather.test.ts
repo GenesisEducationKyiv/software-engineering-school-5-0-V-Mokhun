@@ -3,7 +3,7 @@ import { CACHE_THRESHOLD } from "@common/constants";
 import { db } from "@/db";
 import { GetWeatherQuery } from "@/modules/weather/weather.schema";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { WeatherCache } from "@db";
+import { WeatherCache } from "@prisma/client";
 import { StatusCodes } from "http-status-codes";
 import { http, HttpResponse } from "msw";
 import request from "supertest";

@@ -7,13 +7,12 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@db": ["src/generated/db/index.d.ts"],
       "@common/*": ["../../packages/common/src/*"],
       "@logger/*": ["../../packages/logger/src/*"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/generated"],
+  "exclude": ["node_modules", "dist"],
   "references": [
     { "path": "../../packages/common" },
     { "path": "../../packages/logger" }

@@ -1,4 +1,4 @@
-import { Frequency } from "@db";
+import { Frequency } from "@prisma/client";
 
 export const SUBSCRIPTION_CONFIRMATION_EXPIRATION_TIME = 24 * 60 * 60 * 1000; // 24 hours
 
