@@ -1,4 +1,4 @@
-import { Frequency } from "@prisma/client";
+import { Frequency } from "@db";
 import { z } from "zod";
 
 export const FREQUENCY_MAP: Record<string, Frequency> = {

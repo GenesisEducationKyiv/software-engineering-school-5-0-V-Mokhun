@@ -28,5 +28,8 @@ wait_for_redis() {
 wait_for_db
 wait_for_redis
 
+echo "Running database migrations..."
+npx prisma migrate deploy --schema=./prisma/schema.prisma
+
 echo "Starting application..."
 exec "$@" 

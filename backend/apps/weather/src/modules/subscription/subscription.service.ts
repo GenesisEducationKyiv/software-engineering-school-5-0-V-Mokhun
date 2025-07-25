@@ -1,18 +1,17 @@
-import { SUBSCRIPTION_CONFIRMATION_EXPIRATION_TIME } from "@common/constants";
-import { Frequency } from "@prisma/client";
-import crypto from "crypto";
-import { FREQUENCY_MAP, SubscribeBody } from "./subscription.schema";
-import { ISubscriptionService } from "./subscription.controller";
-import { IQueueService } from "@common/shared/ports";
+import { env } from "@/config/env";
+import { FREQUENCY_TO_CRON, SUBSCRIPTION_CONFIRMATION_EXPIRATION_TIME } from "@/constants";
 import { ISubscriptionRepository } from "@/shared/ports";
-import { NotFoundException } from "@common/shared";
 import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
-import { FREQUENCY_TO_CRON } from "@common/constants";
 import {
   ConfirmEmailJobData,
   UpdateWeatherDataJobData,
 } from "@common/generated/proto/job_pb";
-import { env } from "@/config/env";
+import { NotFoundException } from "@common/shared";
+import { IQueueService } from "@common/shared/ports";
+import { Frequency } from "@db";
+import crypto from "crypto";
+import { ISubscriptionService } from "./subscription.controller";
+import { FREQUENCY_MAP, SubscribeBody } from "./subscription.schema";
 
 export class SubscriptionService implements ISubscriptionService {
   constructor(
