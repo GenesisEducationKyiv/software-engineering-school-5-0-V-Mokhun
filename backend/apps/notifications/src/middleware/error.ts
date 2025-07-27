@@ -28,7 +28,7 @@ function formatErrorResponse(error: HttpException, response: Response) {
 
 export function errorMiddleware(
   error: unknown,
-  request: Request,
+  _request: Request,
   response: Response,
   next: NextFunction
 ) {

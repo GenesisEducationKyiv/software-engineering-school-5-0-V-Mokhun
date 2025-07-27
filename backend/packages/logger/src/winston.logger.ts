@@ -37,6 +37,13 @@ export class WinstonLogger implements ILogger {
         })
       );
     }
+    if (env !== "test") {
+      usedTransports.push(
+        new transports.Console({
+          format: format.combine(format.simple(), format.colorize()),
+        })
+      );
+    }
 
     this.logger = createLogger({
       level: this.logLevel,
@@ -52,12 +59,7 @@ export class WinstonLogger implements ILogger {
         timestamp: new Date().toISOString(),
         env,
       },
-      transports: [
-        ...usedTransports,
-        new transports.Console({
-          format: format.combine(format.simple(), format.colorize()),
-        }),
-      ],
+      transports: usedTransports,
     });
   }
 
