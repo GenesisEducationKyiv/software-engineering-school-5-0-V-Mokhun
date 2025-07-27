@@ -1,7 +1,5 @@
-import { NextFunction, Request, Response } from "express";
 import { HttpException, ServerErrorException } from "@common/shared";
-import { getLogger } from "@logger/logger.factory";
-import { env } from "@/config/env";
+import { NextFunction, Request, Response } from "express";
 
 function hasStatus(error: unknown): error is { status: number } {
   return Boolean(
@@ -20,20 +18,11 @@ function hasMessage(error: unknown): error is { message: string } {
       typeof error.message === "string"
   );
 }
-
-function logError(request: Request, error: HttpException) {
-  getLogger().error(error.message, error, {
-    method: request.method,
-    url: request.url,
-    stack: env.NODE_ENV === "production" ? "🥞" : error.stack,
-  });
-}
-
 function formatErrorResponse(error: HttpException, response: Response) {
   response.status(error.status).json({
     message: error.message,
     errors: error.errors,
-    stack: process.env.NODE_ENV === "production" ? "🥞" : error.stack,
+    stack: error.stack,
   });
 }
 
@@ -48,7 +37,6 @@ export function errorMiddleware(
   }
 
   if (error instanceof HttpException) {
-    logError(request, error);
     formatErrorResponse(error, response);
     return;
   }
@@ -58,7 +46,6 @@ export function errorMiddleware(
       error.status,
       hasMessage(error) ? error.message : `Error with status ${error.status}`
     );
-    logError(request, exception);
     formatErrorResponse(exception, response);
     return;
   }
@@ -66,6 +53,5 @@ export function errorMiddleware(
   const serverError = new ServerErrorException(
     hasMessage(error) ? error.message : "An unexpected error occurred."
   );
-  logError(request, serverError);
   formatErrorResponse(serverError, response);
 }

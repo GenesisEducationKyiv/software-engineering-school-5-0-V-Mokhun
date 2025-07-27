@@ -6,6 +6,7 @@ import {
 } from "@/shared/ports";
 import { HttpException, ServerErrorException } from "@common/shared";
 import { ILogger } from "@logger/logger.interface";
+import { getCallSites } from "util";
 
 export class WeatherApiProvider implements IWeatherProvider {
   private readonly providerName = "WeatherAPI";
@@ -20,7 +21,7 @@ export class WeatherApiProvider implements IWeatherProvider {
     const end = this.metricsService.recordWeatherProviderRequestDuration(
       this.providerName
     );
-    
+
     try {
       this.metricsService.incrementWeatherProviderRequestCount(
         this.providerName
@@ -62,11 +63,23 @@ export class WeatherApiProvider implements IWeatherProvider {
       const err =
         error instanceof Error ? error : new Error(JSON.stringify(error));
 
+      this.logger.error({
+        message: `Error fetching weather data for ${city}`,
+        callSites: getCallSites(),
+        meta: {
+          city,
+          provider: this.providerName,
+        },
+        error: {
+          message: err.message,
+          stack: err.stack,
+          name: err.name,
+        },
+      });
+
       if (error instanceof HttpException) {
         throw error;
       }
-
-      this.logger.error(`Error fetching weather data for ${city}`, err);
 
       throw new ServerErrorException(
         "Failed to fetch weather data due to an unexpected error."

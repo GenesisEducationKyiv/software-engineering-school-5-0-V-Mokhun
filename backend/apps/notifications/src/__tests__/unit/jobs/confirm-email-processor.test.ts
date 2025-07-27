@@ -9,16 +9,20 @@ import {
 import { ConfirmEmailProcessor } from "@/infrastructure/queue/jobs/confirm-email/processor";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
-const mockEmailService = createMockEmailService();
-const mockEmailLogRepo = createMockEmailLogRepository();
-const mockLogger = createMockLogger();
-const mockMetricsService = createMockMetricsService();
-
 describe("ConfirmEmailProcessor", () => {
   let processor: ConfirmEmailProcessor;
+  let mockEmailService: any;
+  let mockEmailLogRepo: any;
+  let mockLogger: any;
+  let mockMetricsService: any;
 
   beforeEach(() => {
     jest.resetAllMocks();
+    
+    mockEmailService = createMockEmailService();
+    mockEmailLogRepo = createMockEmailLogRepository();
+    mockLogger = createMockLogger();
+    mockMetricsService = createMockMetricsService();
 
     processor = new ConfirmEmailProcessor(
       mockEmailService,
@@ -110,10 +114,12 @@ describe("ConfirmEmailProcessor", () => {
       processor.completed(job);
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.any(String),
         expect.objectContaining({
-          jobId: "123",
-          email: mockConfirmEmailJobData.email,
+          message: expect.any(String),
+          meta: expect.objectContaining({
+            jobId: "123",
+            email: mockConfirmEmailJobData.email,
+          }),
         })
       );
     });
@@ -132,10 +138,14 @@ describe("ConfirmEmailProcessor", () => {
       processor.failed(job, error);
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.any(String),
-        error,
         expect.objectContaining({
-          jobId: "123",
+          message: expect.any(String),
+          meta: expect.objectContaining({
+            jobId: "123",
+          }),
+          error: expect.objectContaining({
+            message: errorMessage,
+          }),
         })
       );
     });

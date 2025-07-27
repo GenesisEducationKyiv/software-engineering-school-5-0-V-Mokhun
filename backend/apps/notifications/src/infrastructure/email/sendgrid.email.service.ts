@@ -8,6 +8,7 @@ import { JOB_TYPES } from "@common/constants";
 import { ILogger } from "@logger/logger.interface";
 import sgMail from "@sendgrid/mail";
 import { getConfirmEmailTemplate, getWeatherUpdateTemplate } from "./templates";
+import { getCallSites } from "util";
 
 export class SendgridEmailService implements IEmailService {
   constructor(
@@ -17,7 +18,10 @@ export class SendgridEmailService implements IEmailService {
     private readonly metricsService: IMetricsService
   ) {
     sgMail.setApiKey(apiKey);
-    this.logger.info("SendGrid service configured.");
+    this.logger.info({
+      message: "SendGrid service configured.",
+      callSites: getCallSites(),
+    });
   }
 
   private readonly providerName = "sendgrid";
@@ -35,8 +39,14 @@ export class SendgridEmailService implements IEmailService {
     const msg = { ...params, from: this.fromEmail };
     try {
       await sgMail.send(msg);
-      this.logger.info(`Email sent to ${params.to}`, {
-        subject: params.subject,
+      this.logger.info({
+        message: `Email sent to ${params.to}`,
+        callSites: getCallSites(),
+        meta: {
+          subject: params.subject,
+          to: params.to,
+          emailType: params.emailType,
+        },
       });
       this.metricsService.incrementEmailDeliveryCount(
         this.providerName,
@@ -47,15 +57,22 @@ export class SendgridEmailService implements IEmailService {
         this.providerName,
         params.emailType
       );
-      if (error instanceof Error) {
-        this.logger.error("Failed to send email via SendGrid", error, params);
-      } else {
-        this.logger.error(
-          "An unknown error occurred while sending email via SendGrid",
-          new Error(JSON.stringify(error)),
-          params
-        );
-      }
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error({
+        message: errorMessage,
+        callSites: getCallSites(),
+        meta: {
+          subject: params.subject,
+          to: params.to,
+          emailType: params.emailType,
+        },
+        error: {
+          message: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+          name: error instanceof Error ? error.name : undefined,
+        },
+      });
       throw error;
     } finally {
       end();

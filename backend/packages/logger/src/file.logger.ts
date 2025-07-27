@@ -1,51 +1,53 @@
 import path from "path";
 import fs from "fs";
-import { ILogger, LogLevel } from "./logger.interface";
+import { ILogger, LogData, LogLevel, ErrorLogData } from "./logger.interface";
 
 export class FileLogger implements ILogger {
   logLevel: LogLevel;
+  serviceName: string;
+  env: string;
   private logFilePath: string;
 
-  constructor(logLevel: LogLevel = "info", logDir: string = "log") {
+  constructor(
+    serviceName: string,
+    env: string,
+    logLevel: LogLevel = "info",
+    logDir: string = "log"
+  ) {
     this.logLevel = logLevel;
+    this.serviceName = serviceName;
+    this.env = env;
     const logPath = path.resolve(process.cwd(), "..", "..", logDir);
     if (!fs.existsSync(logPath)) {
       fs.mkdirSync(logPath, { recursive: true });
     }
-    this.logFilePath = path.join(logPath, "app.log");
+    this.logFilePath = path.join(logPath, `app-${serviceName}-${env}.log`);
   }
 
-  private log(level: string, message: string, meta?: Record<string, any>) {
-    const timestamp = new Date().toISOString();
+  private log(level: string, meta: LogData | ErrorLogData) {
     const logMessage =
       JSON.stringify({
-        timestamp,
+        service: this.serviceName,
+        env: this.env,
         level,
-        message,
         ...meta,
-      }) + "\\n";
+      }) + "\n";
     fs.appendFileSync(this.logFilePath, logMessage);
   }
 
-  info(message: string, meta?: Record<string, any>): void {
-    this.log("info", message, meta);
+  info(meta: LogData): void {
+    this.log("info", meta);
   }
 
-  warn(message: string, meta?: Record<string, any>): void {
-    this.log("warn", message, meta);
+  warn(meta: LogData): void {
+    this.log("warn", meta);
   }
 
-  error(message: string, error: Error, meta?: Record<string, any>): void {
-    this.log("error", message, {
-      ...meta,
-      stack: error.stack,
-      name: error.name,
-    });
+  error(meta: ErrorLogData): void {
+    this.log("error", meta);
   }
 
-  debug(message: string, meta?: Record<string, any>): void {
-    if (this.logLevel === "debug") {
-      this.log("debug", message, meta);
-    }
+  debug(meta: LogData): void {
+    this.log("debug", meta);
   }
 }

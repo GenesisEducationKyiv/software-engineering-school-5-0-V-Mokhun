@@ -10,16 +10,20 @@ import { SendWeatherUpdateEmailProcessor } from "@/infrastructure/queue/jobs/sen
 import { SendWeatherUpdateEmailJobData } from "@common/generated/proto/job_pb";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
-const mockEmailService = createMockEmailService();
-const mockEmailLogRepo = createMockEmailLogRepository();
-const mockLogger = createMockLogger();
-const mockMetricsService = createMockMetricsService();
-
 describe("SendWeatherUpdateEmailProcessor", () => {
   let processor: SendWeatherUpdateEmailProcessor;
+  let mockEmailService: any;
+  let mockEmailLogRepo: any;
+  let mockLogger: any;
+  let mockMetricsService: any;
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    mockEmailService = createMockEmailService();
+    mockEmailLogRepo = createMockEmailLogRepository();
+    mockLogger = createMockLogger();
+    mockMetricsService = createMockMetricsService();
 
     processor = new SendWeatherUpdateEmailProcessor(
       mockEmailService,
@@ -166,9 +170,12 @@ describe("SendWeatherUpdateEmailProcessor", () => {
       processor.completed(job);
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.any(String),
         expect.objectContaining({
-          jobId: "123",
+          message: expect.any(String),
+          meta: expect.objectContaining({
+            jobId: "123",
+            email: mockSendWeatherUpdateEmailJobData.email,
+          }),
         })
       );
     });
@@ -187,10 +194,14 @@ describe("SendWeatherUpdateEmailProcessor", () => {
       processor.failed(job, error);
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.any(String),
-        error,
         expect.objectContaining({
-          jobId: "123",
+          message: expect.any(String),
+          meta: expect.objectContaining({
+            jobId: "123",
+          }),
+          error: expect.objectContaining({
+            message: errorMessage,
+          }),
         })
       );
     });
@@ -202,10 +213,14 @@ describe("SendWeatherUpdateEmailProcessor", () => {
       processor.failed(undefined, error);
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.any(String),
-        error,
         expect.objectContaining({
-          jobId: undefined,
+          message: expect.any(String),
+          meta: expect.objectContaining({
+            jobId: undefined,
+          }),
+          error: expect.objectContaining({
+            message: errorMessage,
+          }),
         })
       );
     });

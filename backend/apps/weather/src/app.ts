@@ -13,14 +13,15 @@ import {
   createWeatherController,
   createWeatherRouter,
 } from "@/modules";
-import { getLogger } from "@logger/logger.factory";
-import { FileLogger } from "@logger/file.logger";
+import { createLogger } from "@logger/logger.factory";
 import Redis from "ioredis";
 
 const redis = new Redis({
   host: env.REDIS_HOST,
   port: env.REDIS_PORT,
 });
+
+const logger = createLogger("weather", env.NODE_ENV);
 
 export const app = express();
 
@@ -76,15 +77,14 @@ app.get("/metrics", async (_req, res) => {
 
 const weatherController = createWeatherController({
   db: getDb(),
-  logger: new FileLogger(env.LOG_LEVEL, env.LOG_FILE_PATH),
-  providersLogger: getLogger(),
+  logger,
   apiKey: env.WEATHER_API_KEY,
   metricsService,
 });
 const weatherRouter = createWeatherRouter(weatherController);
 
 const subscriptionController = createSubscriptionController({
-  logger: getLogger(),
+  logger,
   db: getDb(),
   metricsService,
 });

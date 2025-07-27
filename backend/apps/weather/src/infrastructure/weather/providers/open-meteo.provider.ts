@@ -8,6 +8,7 @@ import { HttpException, ServerErrorException } from "@common/shared";
 import { ILogger } from "@logger/logger.interface";
 import z from "zod";
 import { mapWeatherCodeToDescription } from "../mappers";
+import { getCallSites } from "util";
 
 export const openMeteoGeocodingResponseSchema = z.object({
   results: z.array(
@@ -51,8 +52,18 @@ export class OpenMeteoProvider implements IWeatherProvider {
     );
 
     if (!data.success) {
-      this.logger.error(`Failed to fetch coordinates for ${city}`, data.error, {
-        data,
+      this.logger.error({
+        message: `Failed to fetch coordinates for ${city}`,
+        callSites: getCallSites(),
+        meta: {
+          city,
+          provider: this.providerName,
+        },
+        error: {
+          message: data.error.message,
+          stack: data.error.stack,
+          name: data.error.name,
+        },
       });
       throw new ServerErrorException(`Failed to fetch coordinates for ${city}`);
     }
@@ -103,11 +114,19 @@ export class OpenMeteoProvider implements IWeatherProvider {
       });
 
       if (!validated.success) {
-        this.logger.error(
-          "Invalid weather data received from OpenMeteo",
-          validated.error,
-          { data }
-        );
+        this.logger.error({
+          message: "Invalid weather data received from OpenMeteo",
+          callSites: getCallSites(),
+          meta: {
+            city,
+            provider: this.providerName,
+          },
+          error: {
+            message: validated.error.message,
+            stack: validated.error.stack,
+            name: validated.error.name,
+          },
+        });
         throw new ServerErrorException(
           "Invalid weather data received from API"
         );
@@ -122,11 +141,23 @@ export class OpenMeteoProvider implements IWeatherProvider {
       const err =
         error instanceof Error ? error : new Error(JSON.stringify(error));
 
+      this.logger.error({
+        message: `Error fetching weather data for ${city}`,
+        callSites: getCallSites(),
+        meta: {
+          city,
+          provider: this.providerName,
+        },
+        error: {
+          message: err.message,
+          stack: err.stack,
+          name: err.name,
+        },
+      });
+
       if (error instanceof HttpException) {
         throw error;
       }
-
-      this.logger.error(`Error fetching weather data for ${city}`, err);
 
       throw new ServerErrorException(
         "Failed to fetch weather data due to an unexpected error."

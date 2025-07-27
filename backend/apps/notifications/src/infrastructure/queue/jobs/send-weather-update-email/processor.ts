@@ -8,6 +8,7 @@ import {
 } from "@/shared/ports";
 import { ILogger } from "@logger/logger.interface";
 import { JOB_TYPES } from "@common/constants";
+import { getCallSites } from "util";
 
 export class SendWeatherUpdateEmailProcessor implements JobProcessor {
   constructor(
@@ -29,7 +30,13 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
       jobData;
 
     if (!email || !city || !unsubscribeUrl || !subscriptionId || !weatherData) {
-      this.logger.warn("Skipping job due to missing data", { jobId: job.id });
+      this.logger.warn({
+        message: "Skipping job due to missing data",
+        callSites: getCallSites(),
+        meta: {
+          jobId: job.id,
+        },
+      });
       return;
     }
 
@@ -71,9 +78,13 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
 
   completed(job: Job<Uint8Array>) {
     const jobData = SendWeatherUpdateEmailJobData.fromBinary(job.data);
-    this.logger.info("Send weather update email job completed", {
-      jobId: job.id,
-      email: jobData.email,
+    this.logger.info({
+      message: "Send weather update email job completed",
+      callSites: getCallSites(),
+      meta: {
+        jobId: job.id,
+        email: jobData.email,
+      },
     });
   }
 
@@ -81,9 +92,18 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
     const jobData = job
       ? SendWeatherUpdateEmailJobData.fromBinary(job.data)
       : undefined;
-    this.logger.error("Send weather update email job failed", error, {
-      jobId: job?.id,
-      jobData,
+    this.logger.error({
+      message: "Send weather update email job failed",
+      callSites: getCallSites(),
+      meta: {
+        jobId: job?.id,
+        jobData,
+      },
+      error: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      },
     });
   }
 }
