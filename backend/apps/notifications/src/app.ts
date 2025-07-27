@@ -4,7 +4,7 @@ import express from "express";
 import helmet from "helmet";
 import { getDb } from "@/db";
 import { MetricsFactory } from "./infrastructure/metrics";
-import { errorMiddleware, metricsMiddleware } from "./middleware";
+import { createMetricsMiddleware, errorMiddleware } from "./middleware";
 import Redis from "ioredis";
 import { env } from "./config";
 import morgan from "morgan";
@@ -13,6 +13,7 @@ const redis = new Redis({
   host: env.REDIS_HOST,
   port: env.REDIS_PORT,
 });
+const metricsService = MetricsFactory.create();
 
 export const app = express();
 
@@ -27,7 +28,7 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(metricsMiddleware);
+app.use(createMetricsMiddleware(metricsService));
 
 app.get("/health", async (_req, res) => {
   const db = getDb();
@@ -60,7 +61,6 @@ app.get("/health", async (_req, res) => {
   });
 });
 
-const metricsService = MetricsFactory.create();
 app.get("/metrics", async (_req, res) => {
   res.set("Content-Type", metricsService.getContentType());
   res.end(await metricsService.getMetrics());
