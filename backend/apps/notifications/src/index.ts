@@ -7,7 +7,11 @@ import { env } from "./config/env";
 import { getCallSites } from "util";
 
 async function startService() {
-  const logger = createLogger("notifications", env.NODE_ENV);
+  const logger = createLogger({
+    serviceName: "notifications",
+    env: env.NODE_ENV,
+    lokiHost: env.LOKI_HOST,
+  });
 
   try {
     await connectDb();

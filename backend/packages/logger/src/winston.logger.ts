@@ -1,5 +1,4 @@
 import { createLogger, format, Logger, transports } from "winston";
-// import LokiTransport from "winston-loki";
 import { CallSiteObject } from "util";
 import {
   ErrorLogData,
@@ -8,6 +7,7 @@ import {
   LogLevel,
   SamplingConfig,
 } from "./logger.interface";
+import LokiTransport from "winston-loki";
 
 export class WinstonLogger implements ILogger {
   private logger: Logger;
@@ -17,11 +17,26 @@ export class WinstonLogger implements ILogger {
   constructor(
     serviceName: string,
     env: string,
+    samplingConfig: SamplingConfig,
     logLevel: LogLevel = "info",
-    samplingConfig: SamplingConfig
+    lokiHost?: string
   ) {
     this.logLevel = logLevel;
     this.samplingConfig = samplingConfig;
+
+    const usedTransports = [];
+    if (lokiHost) {
+      usedTransports.push(
+        new LokiTransport({
+          host: lokiHost,
+          labels: { app: serviceName },
+          json: true,
+          format: format.json(),
+          replaceTimestamp: true,
+          onConnectionError: (err) => console.error("Loki error:", err),
+        })
+      );
+    }
 
     this.logger = createLogger({
       level: this.logLevel,
@@ -38,14 +53,7 @@ export class WinstonLogger implements ILogger {
         env,
       },
       transports: [
-        // new LokiTransport({
-        //   host: 'http://localhost:3100', // or your Loki instance address
-        //   labels: { app: 'your-app' },
-        //   json: true,
-        //   format: format.json(),
-        //   replaceTimestamp: true,
-        //   onConnectionError: (err) => console.error('Loki error:', err)
-        // }),
+        ...usedTransports,
         new transports.Console({
           format: format.combine(format.simple(), format.colorize()),
         }),

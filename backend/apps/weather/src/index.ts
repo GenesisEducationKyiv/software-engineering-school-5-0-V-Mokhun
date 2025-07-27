@@ -7,7 +7,11 @@ import { workers } from "./infrastructure/queue/workers";
 import { getCallSites } from "util";
 
 async function startServer() {
-  const logger = createLogger("weather", env.NODE_ENV);
+  const logger = createLogger({
+    serviceName: "weather",
+    env: env.NODE_ENV,
+    lokiHost: env.LOKI_HOST,
+  });
 
   try {
     await connectDb();

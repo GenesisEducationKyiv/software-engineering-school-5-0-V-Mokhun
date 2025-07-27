@@ -22,16 +22,24 @@ export const LOG_SAMPLING_CONFIGS: Record<string, SamplingConfig> = {
   },
 };
 
-export function createLogger(
-  serviceName: string,
-  env: string,
-  logLevel: LogLevel = "info",
-  samplingConfig?: SamplingConfig
-): ILogger {
+export function createLogger({
+  serviceName,
+  env,
+  lokiHost,
+  logLevel = "info",
+  samplingConfig,
+}: {
+  serviceName: string;
+  env: string;
+  logLevel?: LogLevel;
+  samplingConfig?: SamplingConfig;
+  lokiHost?: string;
+}): ILogger {
   return new WinstonLogger(
     serviceName,
     env,
+    samplingConfig || LOG_SAMPLING_CONFIGS[env],
     logLevel,
-    samplingConfig || LOG_SAMPLING_CONFIGS[env]
+    lokiHost
   );
 }

@@ -4,7 +4,11 @@ import { createLogger } from "@logger/logger.factory";
 import { MetricsFactory } from "../metrics";
 import { env } from "@/config/env";
 
-const logger = createLogger("notifications", env.NODE_ENV);
+const logger = createLogger({
+  serviceName: "notifications",
+  env: env.NODE_ENV,
+  lokiHost: env.LOKI_HOST,
+});
 const db = getDb();
 const metricsService = MetricsFactory.create();
 

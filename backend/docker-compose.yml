@@ -104,6 +104,19 @@ services:
       - weather-api-network
     volumes:
       - grafana-data:/var/lib/grafana
+    depends_on:
+      loki:
+        condition: service_started
+
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    ports:
+      - 3100:3100
+    volumes:
+      - loki-data:/data
+    networks:
+      - weather-api-network
 
 networks:
   weather-api-network:
@@ -112,3 +125,4 @@ networks:
 volumes:
   prometheus-data:
   grafana-data:
+  loki-data:
