@@ -70,10 +70,11 @@ export class OpenMeteoProvider implements IWeatherProvider {
   }
 
   async getWeatherData(city: string): Promise<WeatherData> {
+    const end = this.metricsService.recordWeatherProviderRequestDuration(
+      this.providerName
+    );
+
     try {
-      const end = this.metricsService.recordWeatherProviderRequestDuration(
-        this.providerName
-      );
       this.metricsService.incrementWeatherProviderRequestCount(
         this.providerName
       );
@@ -112,8 +113,6 @@ export class OpenMeteoProvider implements IWeatherProvider {
         );
       }
 
-      end();
-
       return validated.data;
     } catch (error) {
       this.metricsService.incrementWeatherProviderRequestErrorCount(
@@ -132,6 +131,8 @@ export class OpenMeteoProvider implements IWeatherProvider {
       throw new ServerErrorException(
         "Failed to fetch weather data due to an unexpected error."
       );
+    } finally {
+      end();
     }
   }
 }

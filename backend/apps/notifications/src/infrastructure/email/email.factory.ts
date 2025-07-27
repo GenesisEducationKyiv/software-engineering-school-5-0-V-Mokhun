@@ -1,15 +1,17 @@
 import { ILogger } from "@logger/logger.interface";
-import { IEmailService } from "@/shared/ports";
+import { IEmailService, IMetricsService } from "@/shared/ports";
 import { SendgridEmailService } from "./sendgrid.email.service";
 
 export function createEmailService({
   logger,
   apiKey,
   fromEmail,
+  metricsService,
 }: {
   logger: ILogger;
   apiKey: string;
   fromEmail: string;
+  metricsService: IMetricsService;
 }): IEmailService {
   if (!apiKey || !fromEmail) {
     logger.error(
@@ -20,5 +22,5 @@ export function createEmailService({
     throw new Error("Cannot create EmailService due to missing configuration.");
   }
 
-  return new SendgridEmailService(logger, apiKey, fromEmail);
+  return new SendgridEmailService(apiKey, fromEmail, logger, metricsService);
 }

@@ -3,6 +3,7 @@ import {
   createMockEmailService,
   createMockJob,
   createMockLogger,
+  createMockMetricsService,
   mockSendWeatherUpdateEmailJobData,
 } from "@/__tests__/mocks";
 import { SendWeatherUpdateEmailProcessor } from "@/infrastructure/queue/jobs/send-weather-update-email/processor";
@@ -12,6 +13,7 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 const mockEmailService = createMockEmailService();
 const mockEmailLogRepo = createMockEmailLogRepository();
 const mockLogger = createMockLogger();
+const mockMetricsService = createMockMetricsService();
 
 describe("SendWeatherUpdateEmailProcessor", () => {
   let processor: SendWeatherUpdateEmailProcessor;
@@ -22,7 +24,8 @@ describe("SendWeatherUpdateEmailProcessor", () => {
     processor = new SendWeatherUpdateEmailProcessor(
       mockEmailService,
       mockEmailLogRepo,
-      mockLogger
+      mockLogger,
+      mockMetricsService
     );
   });
 

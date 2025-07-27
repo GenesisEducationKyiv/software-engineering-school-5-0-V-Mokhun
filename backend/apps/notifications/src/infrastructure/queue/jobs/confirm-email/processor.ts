@@ -1,17 +1,27 @@
 import { Job } from "bullmq";
 import { JobProcessor } from "@common/infrastructure/queue/types";
 import { ConfirmEmailJobData } from "@common/generated/proto/job_pb";
-import { IEmailService, IEmailLogRepository } from "@/shared/ports";
+import {
+  IEmailService,
+  IEmailLogRepository,
+  IMetricsService,
+} from "@/shared/ports";
 import { ILogger } from "@logger/logger.interface";
+import { JOB_TYPES } from "@common/constants";
 
 export class ConfirmEmailProcessor implements JobProcessor {
   constructor(
     private readonly emailService: IEmailService,
     private readonly emailLogRepo: IEmailLogRepository,
-    private readonly logger: ILogger
+    private readonly logger: ILogger,
+    private readonly metricsService: IMetricsService
   ) {}
 
   async handle(job: Job<Uint8Array>) {
+    this.metricsService.incrementJobEnqueuedCount(JOB_TYPES.CONFIRM_EMAIL);
+    const end = this.metricsService.recordJobProcessingDuration(
+      JOB_TYPES.CONFIRM_EMAIL
+    );
     const jobData = ConfirmEmailJobData.fromBinary(job.data);
     const { email, city, confirmUrl, subscriptionId } = jobData;
 
@@ -28,7 +38,9 @@ export class ConfirmEmailProcessor implements JobProcessor {
         status: "sent",
         sentAt: new Date(),
       });
+      this.metricsService.incrementJobProcessedCount(JOB_TYPES.CONFIRM_EMAIL);
     } catch (error) {
+      this.metricsService.incrementJobFailedCount(JOB_TYPES.CONFIRM_EMAIL);
       if (subscriptionId) {
         await this.emailLogRepo.create({
           subscriptionId,
@@ -39,8 +51,9 @@ export class ConfirmEmailProcessor implements JobProcessor {
           sentAt: new Date(),
         });
       }
-
       throw error;
+    } finally {
+      end();
     }
   }
 

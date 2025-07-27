@@ -71,6 +71,8 @@ services:
     networks:
       - weather-api-network
     restart: always
+    ports:
+      - 8100:8100
     build:
       context: .
       dockerfile: apps/notifications/Dockerfile

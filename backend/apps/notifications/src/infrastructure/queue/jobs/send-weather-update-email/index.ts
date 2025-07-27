@@ -3,6 +3,7 @@ import { ILogger } from "@logger/logger.interface";
 import {
   IEmailService,
   IEmailLogRepository,
+  IMetricsService,
 } from "@/shared/ports";
 import { WorkerConfig } from "@common/infrastructure/queue/types";
 import { createWorker } from "@common/infrastructure/queue/job-worker.factory";
@@ -12,6 +13,7 @@ export type SendWeatherUpdateEmailDependencies = {
   logger: ILogger;
   emailService: IEmailService;
   emailLogRepo: IEmailLogRepository;
+  metricsService: IMetricsService;
 };
 
 export const createSendWeatherUpdateEmailWorker = (
@@ -22,6 +24,7 @@ export const createSendWeatherUpdateEmailWorker = (
     dependencies.emailService,
     dependencies.emailLogRepo,
     dependencies.logger,
+    dependencies.metricsService,
   );
   return createWorker(
     config.queueName,

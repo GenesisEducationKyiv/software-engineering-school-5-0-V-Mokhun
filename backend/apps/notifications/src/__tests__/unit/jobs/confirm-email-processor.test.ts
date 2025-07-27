@@ -3,6 +3,7 @@ import {
   createMockEmailService,
   createMockJob,
   createMockLogger,
+  createMockMetricsService,
   mockConfirmEmailJobData,
 } from "@/__tests__/mocks";
 import { ConfirmEmailProcessor } from "@/infrastructure/queue/jobs/confirm-email/processor";
@@ -11,6 +12,7 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 const mockEmailService = createMockEmailService();
 const mockEmailLogRepo = createMockEmailLogRepository();
 const mockLogger = createMockLogger();
+const mockMetricsService = createMockMetricsService();
 
 describe("ConfirmEmailProcessor", () => {
   let processor: ConfirmEmailProcessor;
@@ -21,7 +23,8 @@ describe("ConfirmEmailProcessor", () => {
     processor = new ConfirmEmailProcessor(
       mockEmailService,
       mockEmailLogRepo,
-      mockLogger
+      mockLogger,
+      mockMetricsService
     );
   });
 

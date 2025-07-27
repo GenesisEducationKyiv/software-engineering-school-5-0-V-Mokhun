@@ -9,10 +9,10 @@ async function startServer() {
   const logger = getLogger();
 
   try {
+    await connectDb();
     const server = app.listen(env.API_PORT, () => {
       logger.info(`Server is running on port ${env.API_PORT}`);
     });
-    await connectDb();
 
     const jobManager = new JobManager(workers, logger);
     jobManager.initializeWorkers();
