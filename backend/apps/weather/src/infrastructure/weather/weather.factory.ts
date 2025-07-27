@@ -1,5 +1,5 @@
 import { ILogger } from "@logger/logger.interface";
-import { IWeatherProvider } from "@/shared/ports";
+import { IMetricsService, IWeatherProvider } from "@/shared/ports";
 import { OpenMeteoProvider, WeatherApiProvider } from "./providers";
 import { WeatherProvider } from "./weather.provider";
 import { createCircuitBreakerProxy } from "@common/shared/circuit-breaker";
@@ -8,10 +8,12 @@ export function createWeatherProvider({
   providersLogger,
   logger,
   weatherApiKey,
+  metricsService,
 }: {
   providersLogger?: ILogger;
   logger: ILogger;
   weatherApiKey: string;
+  metricsService: IMetricsService;
 }): IWeatherProvider {
   const provLogger = providersLogger ?? logger;
   const providers: IWeatherProvider[] = [];
@@ -19,6 +21,7 @@ export function createWeatherProvider({
   if (weatherApiKey) {
     const weatherApiProvider = new WeatherApiProvider(
       provLogger,
+      metricsService,
       weatherApiKey
     );
     providers.push(createCircuitBreakerProxy(weatherApiProvider, provLogger));
@@ -26,7 +29,7 @@ export function createWeatherProvider({
     provLogger.warn("WeatherAPI key is not set. Skipping WeatherApiProvider.");
   }
 
-  const openMeteoProvider = new OpenMeteoProvider(provLogger);
+  const openMeteoProvider = new OpenMeteoProvider(provLogger, metricsService);
   providers.push(createCircuitBreakerProxy(openMeteoProvider, provLogger));
 
   if (providers.length === 0) {

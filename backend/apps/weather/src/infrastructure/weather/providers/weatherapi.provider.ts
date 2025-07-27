@@ -1,4 +1,5 @@
 import {
+  IMetricsService,
   IWeatherProvider,
   WeatherData,
   weatherDataSchema,
@@ -7,14 +8,23 @@ import { HttpException, ServerErrorException } from "@common/shared";
 import { ILogger } from "@logger/logger.interface";
 
 export class WeatherApiProvider implements IWeatherProvider {
+  private readonly providerName = "WeatherAPI";
   constructor(
     private readonly logger: ILogger,
+    private readonly metricsService: IMetricsService,
     private readonly apiKey: string,
     private readonly baseUrl: string = "https://api.weatherapi.com/v1"
   ) {}
 
   async getWeatherData(city: string): Promise<WeatherData> {
     try {
+      const end = this.metricsService.recordWeatherProviderRequestDuration(
+        this.providerName
+      );
+      this.metricsService.incrementWeatherProviderRequestCount(
+        this.providerName
+      );
+
       const url = `${this.baseUrl}/current.json?key=${this.apiKey}&q=${city}&aqi=no`;
 
       const response = await fetch(url, {
@@ -42,8 +52,14 @@ export class WeatherApiProvider implements IWeatherProvider {
         );
       }
 
+      end();
+
       return validated.data;
     } catch (error) {
+      this.metricsService.incrementWeatherProviderRequestErrorCount(
+        this.providerName
+      );
+
       const err =
         error instanceof Error ? error : new Error(JSON.stringify(error));
 

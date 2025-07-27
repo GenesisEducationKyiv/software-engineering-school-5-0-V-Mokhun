@@ -1,13 +1,13 @@
-import { ILogger } from "./logger.interface";
+import { ILogger, LogLevel } from "./logger.interface";
 
 export class ConsoleLogger implements ILogger {
-  logLevel: "debug" | "info" | "warn" | "error";
+  logLevel: LogLevel;
 
-  constructor(logLevel: "debug" | "info" | "warn" | "error" = "info") {
+  constructor(logLevel: LogLevel = "info") {
     this.logLevel = logLevel;
   }
 
-  private log(level: string, message: string, meta?: Record<string, any>) {
+  private log(level: LogLevel, message: string, meta?: Record<string, any>) {
     const timestamp = new Date().toISOString();
     console.log(
       JSON.stringify({

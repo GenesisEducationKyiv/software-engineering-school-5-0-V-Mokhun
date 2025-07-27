@@ -1,15 +1,12 @@
 import path from "path";
 import fs from "fs";
-import { ILogger } from "./logger.interface";
+import { ILogger, LogLevel } from "./logger.interface";
 
 export class FileLogger implements ILogger {
-  logLevel: "debug" | "info" | "warn" | "error";
+  logLevel: LogLevel;
   private logFilePath: string;
 
-  constructor(
-    logLevel: "debug" | "info" | "warn" | "error" = "info",
-    logDir: string = "log"
-  ) {
+  constructor(logLevel: LogLevel = "info", logDir: string = "log") {
     this.logLevel = logLevel;
     const logPath = path.resolve(process.cwd(), "..", "..", logDir);
     if (!fs.existsSync(logPath)) {

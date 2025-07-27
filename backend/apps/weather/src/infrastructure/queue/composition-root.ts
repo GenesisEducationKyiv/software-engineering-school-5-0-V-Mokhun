@@ -4,12 +4,12 @@ import { env } from "@/config/env";
 import { QUEUE_TYPES } from "@common/constants";
 import { createQueueService } from "@common/infrastructure/queue";
 import { WorkerConfig } from "@common/infrastructure/queue/types";
-import { IDatabase } from "@/shared/ports";
+import { IDatabase, IMetricsService } from "@/shared/ports";
 import { ILogger } from "@logger/logger.interface";
 import { createUpdateWeatherDataWorker } from "./jobs/update-weather-data";
 import { createRootConfig } from "./config";
 
-export const composeWorkers = (db: IDatabase, logger: ILogger) => {
+export const composeWorkers = (db: IDatabase, logger: ILogger, metricsService: IMetricsService) => {
   const rootConnectionConfig = createRootConfig({
     host: env.REDIS_HOST,
     port: env.REDIS_PORT,
@@ -26,6 +26,7 @@ export const composeWorkers = (db: IDatabase, logger: ILogger) => {
     logger,
     providersLogger: logger,
     weatherApiKey: env.WEATHER_API_KEY,
+    metricsService,
   });
 
   const updateWeatherDataWorkerConfig: WorkerConfig = {

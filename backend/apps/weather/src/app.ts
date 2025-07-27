@@ -6,7 +6,7 @@ import morgan from "morgan";
 import { env } from "@/config/env";
 import { getDb } from "@/db";
 import { MetricsFactory } from "./infrastructure/metrics";
-import { errorMiddleware } from "./middleware";
+import { errorMiddleware, metricsMiddleware } from "./middleware";
 import {
   createSubscriptionController,
   createSubscriptionRouter,
@@ -29,6 +29,7 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(metricsMiddleware);
 
 app.get("/health", async (_req, res) => {
   const db = getDb();
@@ -61,13 +62,14 @@ const weatherController = createWeatherController({
   logger: new FileLogger(env.LOG_LEVEL, env.LOG_FILE_PATH),
   providersLogger: getLogger(),
   apiKey: env.WEATHER_API_KEY,
-  metrics: metricsService,
+  metricsService,
 });
 const weatherRouter = createWeatherRouter(weatherController);
 
 const subscriptionController = createSubscriptionController({
   logger: getLogger(),
   db: getDb(),
+  metricsService,
 });
 const subscriptionRouter = createSubscriptionRouter(subscriptionController);
 

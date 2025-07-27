@@ -1,6 +1,6 @@
 import { env } from "@/config/env";
 import { FREQUENCY_TO_CRON, SUBSCRIPTION_CONFIRMATION_EXPIRATION_TIME } from "@/constants";
-import { ISubscriptionRepository } from "@/shared/ports";
+import { IMetricsService, ISubscriptionRepository } from "@/shared/ports";
 import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
 import {
   ConfirmEmailJobData,
@@ -12,11 +12,14 @@ import { Frequency } from "@db";
 import crypto from "crypto";
 import { ISubscriptionService } from "./subscription.controller";
 import { FREQUENCY_MAP, SubscribeBody } from "./subscription.schema";
+import { ILogger } from "@logger/logger.interface";
 
 export class SubscriptionService implements ISubscriptionService {
   constructor(
     private readonly repo: ISubscriptionRepository,
-    private readonly queueService: IQueueService
+    private readonly queueService: IQueueService,
+    private readonly logger: ILogger,
+    private readonly metricsService: IMetricsService
   ) {}
 
   async subscribe(data: SubscribeBody) {

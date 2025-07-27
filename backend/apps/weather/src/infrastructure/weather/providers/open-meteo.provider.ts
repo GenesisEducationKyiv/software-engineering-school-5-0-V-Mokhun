@@ -1,4 +1,5 @@
 import {
+  IMetricsService,
   IWeatherProvider,
   WeatherData,
   weatherDataSchema,
@@ -22,8 +23,10 @@ export type OpenMeteoGeocodingResponse = z.infer<
 >;
 
 export class OpenMeteoProvider implements IWeatherProvider {
+  private readonly providerName = "OpenMeteo";
   constructor(
     private readonly logger: ILogger,
+    private readonly metricsService: IMetricsService,
     private readonly geocodingApiUrl: string = "https://geocoding-api.open-meteo.com/v1",
     private readonly weatherApiUrl: string = "https://api.open-meteo.com/v1"
   ) {}
@@ -68,6 +71,12 @@ export class OpenMeteoProvider implements IWeatherProvider {
 
   async getWeatherData(city: string): Promise<WeatherData> {
     try {
+      const end = this.metricsService.recordWeatherProviderRequestDuration(
+        this.providerName
+      );
+      this.metricsService.incrementWeatherProviderRequestCount(
+        this.providerName
+      );
       const { latitude, longitude } = await this.getCoordinates(city);
 
       const url = `${this.weatherApiUrl}/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code&forecast_days=1`;
@@ -103,8 +112,14 @@ export class OpenMeteoProvider implements IWeatherProvider {
         );
       }
 
+      end();
+
       return validated.data;
     } catch (error) {
+      this.metricsService.incrementWeatherProviderRequestErrorCount(
+        this.providerName
+      );
+
       const err =
         error instanceof Error ? error : new Error(JSON.stringify(error));
 
