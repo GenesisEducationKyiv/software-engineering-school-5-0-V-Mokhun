@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from "express";
 import { HttpException, ServerErrorException } from "@common/shared";
+import { NextFunction, Request, Response } from "express";
 
 function hasStatus(error: unknown): error is { status: number } {
   return Boolean(
@@ -18,7 +18,6 @@ function hasMessage(error: unknown): error is { message: string } {
       typeof error.message === "string"
   );
 }
-
 function formatErrorResponse(error: HttpException, response: Response) {
   response.status(error.status).json({
     message: error.message,

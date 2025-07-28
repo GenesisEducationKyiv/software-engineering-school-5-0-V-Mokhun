@@ -1,6 +1,7 @@
 import { ILogger } from "@logger/logger.interface";
 import { ServerErrorException } from "@common/shared";
 import opossum from "opossum";
+import { getCallSites } from "util";
 
 const opossumOptions: opossum.Options = {
   timeout: 5000,
@@ -38,10 +39,24 @@ export function createCircuitBreakerProxy<T extends object>(
     const breaker = new opossum(originalMethod, opossumOptions);
 
     breaker.on("open", () =>
-      logger.warn(`[${targetName}.${methodName}] Circuit breaker is open.`)
+      logger.warn({
+        message: `[${targetName}.${methodName}] Circuit breaker is open.`,
+        callSites: getCallSites(),
+        meta: {
+          targetName,
+          methodName,
+        },
+      })
     );
     breaker.on("close", () =>
-      logger.info(`[${targetName}.${methodName}] Circuit breaker is closed.`)
+      logger.info({
+        message: `[${targetName}.${methodName}] Circuit breaker is closed.`,
+        callSites: getCallSites(),
+        meta: {
+          targetName,
+          methodName,
+        },
+      })
     );
     breaker.fallback(() => {
       throw new ServerErrorException(

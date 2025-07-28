@@ -1,43 +1,40 @@
-import { ILogger } from "./logger.interface";
+import { ErrorLogData, ILogger, LogData, LogLevel } from "./logger.interface";
 
 export class ConsoleLogger implements ILogger {
-  logLevel: "debug" | "info" | "warn" | "error";
+  logLevel: LogLevel;
+  serviceName: string;
+  env: string;
 
-  constructor(logLevel: "debug" | "info" | "warn" | "error" = "info") {
+  constructor(serviceName: string, env: string, logLevel: LogLevel = "info") {
     this.logLevel = logLevel;
+    this.serviceName = serviceName;
+    this.env = env;
   }
 
-  private log(level: string, message: string, meta?: Record<string, any>) {
-    const timestamp = new Date().toISOString();
+  private log(level: LogLevel, meta: LogData | ErrorLogData) {
     console.log(
       JSON.stringify({
-        timestamp,
+        service: this.serviceName,
+        env: this.env,
         level,
-        message,
         ...meta,
       })
     );
   }
 
-  info(message: string, meta?: Record<string, any>): void {
-    this.log("info", message, meta);
+  info(meta: LogData): void {
+    this.log("info", meta);
   }
 
-  warn(message: string, meta?: Record<string, any>): void {
-    this.log("warn", message, meta);
+  warn(meta: LogData): void {
+    this.log("warn", meta);
   }
 
-  error(message: string, error: Error, meta?: Record<string, any>): void {
-    this.log("error", message, {
-      ...meta,
-      stack: error.stack,
-      name: error.name,
-    });
+  error(meta: ErrorLogData): void {
+    this.log("error", meta);
   }
 
-  debug(message: string, meta?: Record<string, any>): void {
-    if (this.logLevel === "debug") {
-      this.log("debug", message, meta);
-    }
+  debug(meta: LogData): void {
+    this.log("debug", meta);
   }
 }

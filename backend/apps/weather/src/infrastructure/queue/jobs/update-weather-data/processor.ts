@@ -8,6 +8,7 @@ import {
   WeatherData,
 } from "@common/generated/proto/job_pb";
 import { IQueueService } from "@common/shared/ports";
+import { getCallSites } from "util";
 
 export class UpdateWeatherDataProcessor {
   constructor(
@@ -25,9 +26,13 @@ export class UpdateWeatherDataProcessor {
       const subscription = await this.subscriptionRepo.findById(subscriptionId);
 
       if (!subscription?.confirmed) {
-        this.logger.warn(
-          `Skipping weather update for unconfirmed or non-existent subscription ID: ${subscriptionId}`
-        );
+        this.logger.warn({
+          message: `Skipping weather update for unconfirmed or non-existent subscription ID: ${subscriptionId}`,
+          callSites: getCallSites(),
+          meta: {
+            subscriptionId,
+          },
+        });
         return;
       }
 
@@ -50,10 +55,18 @@ export class UpdateWeatherDataProcessor {
         Buffer.from(emailJobData.toBinary())
       );
     } catch (error) {
-      this.logger.error(
-        `Error processing weather update for subscription ID: ${subscriptionId}`,
-        error as Error
-      );
+      this.logger.error({
+        message: `Error processing weather update for subscription ID: ${subscriptionId}`,
+        callSites: getCallSites(),
+        meta: {
+          subscriptionId,
+        },
+        error: {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          name: error instanceof Error ? error.name : undefined,
+        },
+      });
       throw error;
     }
   }
@@ -61,10 +74,14 @@ export class UpdateWeatherDataProcessor {
   completed(job: Job<Uint8Array>) {
     const jobData = UpdateWeatherDataJobData.fromBinary(job.data);
     const { subscriptionId } = jobData;
-    this.logger.info(
-      `Update weather data job completed for subscription ID: ${subscriptionId}`,
-      { jobId: job.id }
-    );
+    this.logger.info({
+      message: `Update weather data job completed for subscription ID: ${subscriptionId}`,
+      callSites: getCallSites(),
+      meta: {
+        subscriptionId,
+        jobId: job.id,
+      },
+    });
   }
 
   failed(job: Job<Uint8Array> | undefined, error: Error) {
@@ -72,13 +89,18 @@ export class UpdateWeatherDataProcessor {
       ? UpdateWeatherDataJobData.fromBinary(job.data)
       : undefined;
 
-    this.logger.error(
-      `Update weather data job failed for subscription ID: ${jobData?.subscriptionId}`,
-      error,
-      {
+    this.logger.error({
+      message: `Update weather data job failed for subscription ID: ${jobData?.subscriptionId}`,
+      callSites: getCallSites(),
+      meta: {
         jobId: job?.id,
-        jobData,
-      }
-    );
+        subscriptionId: jobData?.subscriptionId,
+      },
+      error: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      },
+    });
   }
 }

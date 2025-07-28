@@ -135,11 +135,12 @@ describe("UpdateWeatherDataProcessor", () => {
       processor.completed(job);
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining(
-          `${mockUpdateWeatherDataJobData.subscriptionId}`
-        ),
         expect.objectContaining({
-          jobId: job.id,
+          message: expect.any(String),
+          meta: expect.objectContaining({
+            jobId: job.id,
+            subscriptionId: mockUpdateWeatherDataJobData.subscriptionId,
+          }),
         })
       );
     });
@@ -157,14 +158,16 @@ describe("UpdateWeatherDataProcessor", () => {
       processor.failed(job, error);
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining(
-          `${mockUpdateWeatherDataJobData.subscriptionId}`
-        ),
-        error,
-        {
-          jobId: job?.id,
-          jobData: mockUpdateWeatherDataJobData,
-        }
+        expect.objectContaining({
+          message: expect.any(String),
+          meta: expect.objectContaining({
+            jobId: job?.id,
+            subscriptionId: mockUpdateWeatherDataJobData.subscriptionId,
+          }),
+          error: expect.objectContaining({
+            message: errorMessage,
+          }),
+        })
       );
     });
 
@@ -175,12 +178,15 @@ describe("UpdateWeatherDataProcessor", () => {
       processor.failed(undefined, error);
 
       expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining("undefined"),
-        error,
-        {
-          jobId: undefined,
-          jobData: undefined,
-        }
+        expect.objectContaining({
+          message: expect.any(String),
+          meta: expect.objectContaining({
+            jobId: undefined,
+          }),
+          error: expect.objectContaining({
+            message: errorMessage,
+          }),
+        })
       );
     });
   });

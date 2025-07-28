@@ -27,6 +27,8 @@ const notificationsEnvSchema = z
     SENDGRID_FROM_EMAIL: z.string().email(),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
     LOG_FILE_PATH: z.string(),
+    LOKI_HOST: z.string().optional(),
+    API_PORT: z.coerce.number().int().nonnegative(),
   })
   .passthrough();
 

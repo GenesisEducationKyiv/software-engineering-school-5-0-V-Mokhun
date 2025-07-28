@@ -1,6 +1,7 @@
 import { ILogger } from "@logger/logger.interface";
 import { IQueueService } from "@common/shared/ports";
 import { Queue } from "bullmq";
+import { getCallSites } from "util";
 
 export class BullMQService implements IQueueService {
   private readonly queues: Map<string, Queue>;
@@ -39,9 +40,15 @@ export class BullMQService implements IQueueService {
       { pattern: cron },
       { name: jobName, data }
     );
-    this.logger.info(
-      `Scheduled job ${jobName} on queue ${queueName} with cron ${cron}`
-    );
+    this.logger.info({
+      message: `Scheduled job ${jobName} on queue ${queueName} with cron ${cron}`,
+      callSites: getCallSites(),
+      meta: {
+        queueName,
+        jobName,
+        cron,
+      },
+    });
   }
 
   public async removeSchedule(
@@ -52,10 +59,19 @@ export class BullMQService implements IQueueService {
       const queue = this.getQueue(queueName);
       await queue.removeJobScheduler(schedulerId);
     } catch (error) {
-      this.logger.error(
-        `Error removing job scheduler "${schedulerId}" from queue "${queueName}"`,
-        error instanceof Error ? error : new Error(JSON.stringify(error))
-      );
+      this.logger.error({
+        message: `Error removing job scheduler "${schedulerId}" from queue "${queueName}"`,
+        callSites: getCallSites(),
+        meta: {
+          queueName,
+          schedulerId,
+        },
+        error: {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          name: error instanceof Error ? error.name : undefined,
+        },
+      });
     }
   }
 }

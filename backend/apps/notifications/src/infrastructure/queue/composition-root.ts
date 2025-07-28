@@ -1,7 +1,7 @@
 import { env } from "@/config/env";
 import { ILogger } from "@logger/logger.interface";
 import { QUEUE_TYPES } from "@common/constants";
-import { IDatabase } from "@/shared/ports";
+import { IDatabase, IMetricsService } from "@/shared/ports";
 import { createEmailService } from "@/infrastructure/email/email.factory";
 import { EmailLogRepository } from "@/infrastructure/repositories/email-log.repository";
 import {
@@ -11,13 +11,18 @@ import {
 import { WorkerConfig } from "@common/infrastructure/queue/types";
 import { createRootConfig } from "./config";
 
-export const composeWorkers = (db: IDatabase, logger: ILogger) => {
+export const composeWorkers = (
+  db: IDatabase,
+  logger: ILogger,
+  metricsService: IMetricsService
+) => {
   const rootConnectionConfig = createRootConfig();
 
   const emailService = createEmailService({
     logger,
     apiKey: env.SENDGRID_API_KEY,
     fromEmail: env.SENDGRID_FROM_EMAIL,
+    metricsService,
   });
   const emailLogRepo = new EmailLogRepository(db);
 
@@ -32,6 +37,7 @@ export const composeWorkers = (db: IDatabase, logger: ILogger) => {
       emailService,
       emailLogRepo,
       logger,
+      metricsService,
     }
   );
 
@@ -46,6 +52,7 @@ export const composeWorkers = (db: IDatabase, logger: ILogger) => {
       emailService,
       emailLogRepo,
       logger,
+      metricsService,
     }
   );
 

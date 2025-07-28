@@ -28,6 +28,7 @@ const weatherEnvSchema = z
     WEATHER_API_KEY: z.string(),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
     LOG_FILE_PATH: z.string(),
+    LOKI_HOST: z.string().optional(),
   })
   .passthrough();
 

@@ -11,20 +11,21 @@ export function createWeatherController({
   logger,
   providersLogger,
   apiKey,
-  metrics,
+  metricsService,
 }: {
   db: IDatabase;
   logger: ILogger;
   providersLogger?: ILogger;
   apiKey: string;
-  metrics: IMetricsService;
+  metricsService: IMetricsService;
 }): WeatherController {
   const repo = new WeatherRepository(db);
   const provider = createWeatherProvider({
     logger,
     providersLogger,
     weatherApiKey: apiKey,
+    metricsService,
   });
-  const service = new WeatherService(repo, provider, metrics);
+  const service = new WeatherService(repo, provider, metricsService);
   return new WeatherController(service);
 }

@@ -93,6 +93,8 @@ services:
     container_name: notifications-service-dev
     env_file:
       - apps/notifications/.env.development
+    ports:
+      - 8101:8100
     networks:
       - weather-api-network-dev
     restart: always
@@ -147,6 +149,19 @@ services:
       - weather-api-network-dev
     volumes:
       - grafana-data-dev:/var/lib/grafana
+    depends_on:
+      loki-dev:
+        condition: service_started
+
+  loki-dev:
+    container_name: loki-dev
+    image: grafana/loki:latest
+    ports:
+      - 3101:3100
+    networks:
+      - weather-api-network-dev
+    volumes:
+      - loki-data-dev:/data
 
 networks:
   weather-api-network-dev:
@@ -155,3 +170,4 @@ networks:
 volumes:
   prometheus-data-dev:
   grafana-data-dev:
+  loki-data-dev:

@@ -2,31 +2,17 @@ import compression from "compression";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import morgan from "morgan";
-import { env } from "@/config/env";
 import { getDb } from "@/db";
 import { MetricsFactory } from "./infrastructure/metrics";
 import { createMetricsMiddleware, errorMiddleware } from "./middleware";
-import {
-  createSubscriptionController,
-  createSubscriptionRouter,
-  createWeatherController,
-  createWeatherRouter,
-} from "@/modules";
-import { createLogger } from "@logger/logger.factory";
 import Redis from "ioredis";
+import { env } from "./config";
+import morgan from "morgan";
 
 const redis = new Redis({
   host: env.REDIS_HOST,
   port: env.REDIS_PORT,
 });
-
-const logger = createLogger({
-  serviceName: "weather",
-  env: env.NODE_ENV,
-  lokiHost: env.LOKI_HOST,
-});
-
 const metricsService = MetricsFactory.create();
 
 export const app = express();
@@ -79,23 +65,5 @@ app.get("/metrics", async (_req, res) => {
   res.set("Content-Type", metricsService.getContentType());
   res.end(await metricsService.getMetrics());
 });
-
-const weatherController = createWeatherController({
-  db: getDb(),
-  logger,
-  apiKey: env.WEATHER_API_KEY,
-  metricsService,
-});
-const weatherRouter = createWeatherRouter(weatherController);
-
-const subscriptionController = createSubscriptionController({
-  logger,
-  db: getDb(),
-  metricsService,
-});
-const subscriptionRouter = createSubscriptionRouter(subscriptionController);
-
-app.use("/api", subscriptionRouter);
-app.use("/api/weather", weatherRouter);
 
 app.use(errorMiddleware);
