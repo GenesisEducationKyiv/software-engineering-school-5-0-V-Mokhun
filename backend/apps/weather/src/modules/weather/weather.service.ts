@@ -1,17 +1,16 @@
+import {
+  ICacheMetricsService, IWeatherProvider,
+  IWeatherRepository,
+  WeatherData
+} from "@/shared/ports";
 import { CACHE_THRESHOLD } from "@common/constants";
 import { IWeatherService } from "./weather.controller";
-import { IMetricsService } from "@/shared/ports";
-import {
-  IWeatherProvider,
-  IWeatherRepository,
-  WeatherData,
-} from "@/shared/ports";
 
 export class WeatherService implements IWeatherService {
   constructor(
     private readonly repo: IWeatherRepository,
     private readonly provider: IWeatherProvider,
-    private readonly metricsService: IMetricsService,
+    private readonly metricsService: ICacheMetricsService,
     private readonly threshold: number = CACHE_THRESHOLD
   ) {}
 

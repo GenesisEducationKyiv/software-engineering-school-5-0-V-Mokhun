@@ -5,7 +5,13 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { env } from "@/config/env";
 import { getDb } from "@/db";
-import { MetricsFactory } from "./infrastructure/metrics";
+import {
+  CacheMetricsServiceFactory,
+  HttpMetricsServiceFactory,
+  registryManager,
+  SubscriptionMetricsServiceFactory,
+  WeatherProviderMetricsServiceFactory,
+} from "./infrastructure/metrics";
 import { createMetricsMiddleware, errorMiddleware } from "./middleware";
 import {
   createSubscriptionController,
@@ -27,8 +33,6 @@ const logger = createLogger({
   lokiHost: env.LOKI_HOST,
 });
 
-const metricsService = MetricsFactory.create();
-
 export const app = express();
 
 if (env.NODE_ENV === "development") {
@@ -42,7 +46,11 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(createMetricsMiddleware(metricsService));
+app.use(
+  createMetricsMiddleware(
+    HttpMetricsServiceFactory.create(registryManager.getRegistry())
+  )
+);
 
 app.get("/health", async (_req, res) => {
   const db = getDb();
@@ -76,22 +84,29 @@ app.get("/health", async (_req, res) => {
 });
 
 app.get("/metrics", async (_req, res) => {
-  res.set("Content-Type", metricsService.getContentType());
-  res.end(await metricsService.getMetrics());
+  res.set("Content-Type", registryManager.getContentType());
+  res.end(await registryManager.getMetrics());
 });
 
 const weatherController = createWeatherController({
   db: getDb(),
   logger,
   apiKey: env.WEATHER_API_KEY,
-  metricsService,
+  cacheMetricsService: CacheMetricsServiceFactory.create(
+    registryManager.getRegistry()
+  ),
+  weatherProviderMetricsService: WeatherProviderMetricsServiceFactory.create(
+    registryManager.getRegistry()
+  ),
 });
 const weatherRouter = createWeatherRouter(weatherController);
 
 const subscriptionController = createSubscriptionController({
   logger,
   db: getDb(),
-  metricsService,
+  metricsService: SubscriptionMetricsServiceFactory.create(
+    registryManager.getRegistry()
+  ),
 });
 const subscriptionRouter = createSubscriptionRouter(subscriptionController);
 

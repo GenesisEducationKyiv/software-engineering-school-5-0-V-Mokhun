@@ -3,7 +3,7 @@ import {
   FREQUENCY_TO_CRON,
   SUBSCRIPTION_CONFIRMATION_EXPIRATION_TIME,
 } from "@/constants";
-import { IMetricsService, ISubscriptionRepository } from "@/shared/ports";
+import { ISubscriptionMetricsService, ISubscriptionRepository } from "@/shared/ports";
 import { JOB_TYPES, QUEUE_TYPES } from "@common/constants";
 import {
   ConfirmEmailJobData,
@@ -12,18 +12,18 @@ import {
 import { NotFoundException } from "@common/shared";
 import { IQueueService } from "@common/shared/ports";
 import { Frequency } from "@db";
+import { ILogger } from "@logger/logger.interface";
 import crypto from "crypto";
+import { getCallSites } from "util";
 import { ISubscriptionService } from "./subscription.controller";
 import { FREQUENCY_MAP, SubscribeBody } from "./subscription.schema";
-import { ILogger } from "@logger/logger.interface";
-import { getCallSites } from "util";
 
 export class SubscriptionService implements ISubscriptionService {
   constructor(
     private readonly repo: ISubscriptionRepository,
     private readonly queueService: IQueueService,
     private readonly logger: ILogger,
-    private readonly metricsService: IMetricsService
+    private readonly metricsService: ISubscriptionMetricsService
   ) {}
 
   async subscribe(data: SubscribeBody) {

@@ -1,4 +1,12 @@
-export interface IMetricsService {
+import { Registry } from "prom-client";
+
+export interface IRegistryManager {
+  getRegistry(): Registry;
+  getMetrics(): Promise<string>;
+  getContentType(): string;
+}
+
+export interface IHttpMetricsService {
   incrementHttpRequestCount(
     method: string,
     route: string,
@@ -14,11 +22,20 @@ export interface IMetricsService {
     route: string,
     statusCode: string
   ): () => number;
+}
+
+export interface ICacheMetricsService {
   incrementCacheHit(cacheName: string): void;
   incrementCacheMiss(cacheName: string): void;
+}
+
+export interface IWeatherProviderMetricsService {
   incrementWeatherProviderRequestCount(providerName: string): void;
   incrementWeatherProviderRequestErrorCount(providerName: string): void;
   recordWeatherProviderRequestDuration(providerName: string): () => number;
+}
+
+export interface ISubscriptionMetricsService {
   incrementSubscriptionCreatedCount(): void;
   incrementSubscriptionCreationErrorCount(): void;
   incrementSubscriptionConfirmedCount(): void;
@@ -27,6 +44,4 @@ export interface IMetricsService {
   incrementSubscriptionUnsubscribeErrorCount(): void;
   incrementSubscriptionsActiveCount(): void;
   decrementSubscriptionsActiveCount(): void;
-  getMetrics(): Promise<string>;
-  getContentType(): string;
 }

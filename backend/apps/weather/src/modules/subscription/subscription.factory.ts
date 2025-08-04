@@ -1,7 +1,7 @@
 import { IQueueService } from "@common/shared/ports";
 import { createQueueService } from "@common/infrastructure/queue/queue.factory";
 import { ILogger } from "@logger/logger.interface";
-import { IDatabase, IMetricsService } from "@/shared/ports";
+import { IDatabase, ISubscriptionMetricsService } from "@/shared/ports";
 import { SubscriptionRepository } from "@/infrastructure/repositories/subscription.repository";
 import { SubscriptionController } from "./subscription.controller";
 import { SubscriptionService } from "./subscription.service";
@@ -16,7 +16,7 @@ export function createSubscriptionController({
   logger: ILogger;
   db: IDatabase;
   queueService?: IQueueService;
-  metricsService: IMetricsService;
+  metricsService: ISubscriptionMetricsService;
 }): SubscriptionController {
   const repo = new SubscriptionRepository(db);
   const queue =

@@ -1,8 +1,11 @@
 import { composeWorkers } from "./composition-root";
 import { getDb } from "@/db";
 import { createLogger } from "@logger/logger.factory";
-import { MetricsFactory } from "../metrics";
 import { env } from "@/config/env";
+import {
+  registryManager,
+  WeatherProviderMetricsServiceFactory,
+} from "../metrics";
 
 const logger = createLogger({
   serviceName: "weather",
@@ -10,6 +13,11 @@ const logger = createLogger({
   lokiHost: env.LOKI_HOST,
 });
 const db = getDb();
-const metricsService = MetricsFactory.create();
+const weatherProviderMetricsService =
+  WeatherProviderMetricsServiceFactory.create(registryManager.getRegistry());
 
-export const workers = composeWorkers(db, logger, metricsService);
+export const workers = composeWorkers(
+  db,
+  logger,
+  weatherProviderMetricsService
+);

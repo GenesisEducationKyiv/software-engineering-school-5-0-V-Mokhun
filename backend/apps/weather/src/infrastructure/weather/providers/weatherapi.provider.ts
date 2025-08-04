@@ -1,8 +1,8 @@
 import {
-  IMetricsService,
   IWeatherProvider,
+  IWeatherProviderMetricsService,
   WeatherData,
-  weatherDataSchema,
+  weatherDataSchema
 } from "@/shared/ports";
 import { HttpException, ServerErrorException } from "@common/shared";
 import { ILogger } from "@logger/logger.interface";
@@ -12,7 +12,7 @@ export class WeatherApiProvider implements IWeatherProvider {
   private readonly providerName = "WeatherAPI";
   constructor(
     private readonly logger: ILogger,
-    private readonly metricsService: IMetricsService,
+    private readonly metricsService: IWeatherProviderMetricsService,
     private readonly apiKey: string,
     private readonly baseUrl: string = "https://api.weatherapi.com/v1"
   ) {}

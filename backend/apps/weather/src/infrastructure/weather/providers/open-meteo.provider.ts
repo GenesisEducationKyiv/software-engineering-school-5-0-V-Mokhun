@@ -1,14 +1,14 @@
 import {
-  IMetricsService,
   IWeatherProvider,
+  IWeatherProviderMetricsService,
   WeatherData,
-  weatherDataSchema,
+  weatherDataSchema
 } from "@/shared/ports";
 import { HttpException, ServerErrorException } from "@common/shared";
 import { ILogger } from "@logger/logger.interface";
+import { getCallSites } from "util";
 import z from "zod";
 import { mapWeatherCodeToDescription } from "../mappers";
-import { getCallSites } from "util";
 
 export const openMeteoGeocodingResponseSchema = z.object({
   results: z.array(
@@ -27,7 +27,7 @@ export class OpenMeteoProvider implements IWeatherProvider {
   private readonly providerName = "OpenMeteo";
   constructor(
     private readonly logger: ILogger,
-    private readonly metricsService: IMetricsService,
+    private readonly metricsService: IWeatherProviderMetricsService,
     private readonly geocodingApiUrl: string = "https://geocoding-api.open-meteo.com/v1",
     private readonly weatherApiUrl: string = "https://api.open-meteo.com/v1"
   ) {}

@@ -1,9 +1,9 @@
+import { IWeatherProvider, IWeatherProviderMetricsService } from "@/shared/ports";
+import { createCircuitBreakerProxy } from "@common/shared/circuit-breaker";
 import { ILogger } from "@logger/logger.interface";
-import { IMetricsService, IWeatherProvider } from "@/shared/ports";
+import { getCallSites } from "util";
 import { OpenMeteoProvider, WeatherApiProvider } from "./providers";
 import { WeatherProvider } from "./weather.provider";
-import { createCircuitBreakerProxy } from "@common/shared/circuit-breaker";
-import { getCallSites } from "util";
 
 export function createWeatherProvider({
   providersLogger,
@@ -14,7 +14,7 @@ export function createWeatherProvider({
   providersLogger?: ILogger;
   logger: ILogger;
   weatherApiKey: string;
-  metricsService: IMetricsService;
+  metricsService: IWeatherProviderMetricsService;
 }): IWeatherProvider {
   const provLogger = providersLogger ?? logger;
   const providers: IWeatherProvider[] = [];
