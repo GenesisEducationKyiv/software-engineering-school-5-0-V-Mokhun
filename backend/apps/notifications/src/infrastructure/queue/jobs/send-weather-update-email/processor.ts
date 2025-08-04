@@ -1,13 +1,13 @@
-import { Job } from "bullmq";
-import { JobProcessor } from "@common/infrastructure/queue/types";
-import { SendWeatherUpdateEmailJobData } from "@common/generated/proto/job_pb";
 import {
-  IEmailService,
   IEmailLogRepository,
-  IMetricsService,
+  IEmailService,
+  IJobMetricsService
 } from "@/shared/ports";
-import { ILogger } from "@logger/logger.interface";
 import { JOB_TYPES } from "@common/constants";
+import { SendWeatherUpdateEmailJobData } from "@common/generated/proto/job_pb";
+import { JobProcessor } from "@common/infrastructure/queue/types";
+import { ILogger } from "@logger/logger.interface";
+import { Job } from "bullmq";
 import { getCallSites } from "util";
 
 export class SendWeatherUpdateEmailProcessor implements JobProcessor {
@@ -15,7 +15,7 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
     private readonly emailService: IEmailService,
     private readonly emailLogRepo: IEmailLogRepository,
     private readonly logger: ILogger,
-    private readonly metricsService: IMetricsService
+    private readonly metricsService: IJobMetricsService
   ) {}
 
   async handle(job: Job<Uint8Array>) {

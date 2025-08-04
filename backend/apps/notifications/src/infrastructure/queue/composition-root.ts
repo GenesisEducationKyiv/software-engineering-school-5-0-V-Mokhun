@@ -1,20 +1,25 @@
 import { env } from "@/config/env";
-import { ILogger } from "@logger/logger.interface";
-import { QUEUE_TYPES } from "@common/constants";
-import { IDatabase, IMetricsService } from "@/shared/ports";
 import { createEmailService } from "@/infrastructure/email/email.factory";
 import { EmailLogRepository } from "@/infrastructure/repositories/email-log.repository";
+import {
+  IDatabase,
+  IEmailMetricsService,
+  IJobMetricsService
+} from "@/shared/ports";
+import { QUEUE_TYPES } from "@common/constants";
+import { WorkerConfig } from "@common/infrastructure/queue/types";
+import { ILogger } from "@logger/logger.interface";
+import { createRootConfig } from "./config";
 import {
   createConfirmEmailWorker,
   createSendWeatherUpdateEmailWorker,
 } from "./jobs";
-import { WorkerConfig } from "@common/infrastructure/queue/types";
-import { createRootConfig } from "./config";
 
 export const composeWorkers = (
   db: IDatabase,
   logger: ILogger,
-  metricsService: IMetricsService
+  jobMetricsService: IJobMetricsService,
+  emailMetricsService: IEmailMetricsService
 ) => {
   const rootConnectionConfig = createRootConfig();
 
@@ -22,7 +27,7 @@ export const composeWorkers = (
     logger,
     apiKey: env.SENDGRID_API_KEY,
     fromEmail: env.SENDGRID_FROM_EMAIL,
-    metricsService,
+    metricsService: emailMetricsService,
   });
   const emailLogRepo = new EmailLogRepository(db);
 
@@ -37,7 +42,7 @@ export const composeWorkers = (
       emailService,
       emailLogRepo,
       logger,
-      metricsService,
+      metricsService: jobMetricsService,
     }
   );
 
@@ -52,7 +57,7 @@ export const composeWorkers = (
       emailService,
       emailLogRepo,
       logger,
-      metricsService,
+      metricsService: jobMetricsService,
     }
   );
 

@@ -1,19 +1,19 @@
-import { JOB_TYPES } from "@common/constants";
-import { ILogger } from "@logger/logger.interface";
 import {
-  IEmailService,
   IEmailLogRepository,
-  IMetricsService,
+  IEmailService,
+  IJobMetricsService
 } from "@/shared/ports";
-import { WorkerConfig } from "@common/infrastructure/queue/types";
+import { JOB_TYPES } from "@common/constants";
 import { createWorker } from "@common/infrastructure/queue/job-worker.factory";
+import { WorkerConfig } from "@common/infrastructure/queue/types";
+import { ILogger } from "@logger/logger.interface";
 import { SendWeatherUpdateEmailProcessor } from "./processor";
 
 export type SendWeatherUpdateEmailDependencies = {
   logger: ILogger;
   emailService: IEmailService;
   emailLogRepo: IEmailLogRepository;
-  metricsService: IMetricsService;
+  metricsService: IJobMetricsService;
 };
 
 export const createSendWeatherUpdateEmailWorker = (

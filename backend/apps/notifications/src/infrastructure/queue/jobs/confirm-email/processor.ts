@@ -4,7 +4,7 @@ import { ConfirmEmailJobData } from "@common/generated/proto/job_pb";
 import {
   IEmailService,
   IEmailLogRepository,
-  IMetricsService,
+  IJobMetricsService,
 } from "@/shared/ports";
 import { ILogger } from "@logger/logger.interface";
 import { JOB_TYPES } from "@common/constants";
@@ -15,7 +15,7 @@ export class ConfirmEmailProcessor implements JobProcessor {
     private readonly emailService: IEmailService,
     private readonly emailLogRepo: IEmailLogRepository,
     private readonly logger: ILogger,
-    private readonly metricsService: IMetricsService
+    private readonly metricsService: IJobMetricsService
   ) {}
 
   async handle(job: Job<Uint8Array>) {

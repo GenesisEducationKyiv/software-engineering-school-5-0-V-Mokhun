@@ -1,5 +1,5 @@
-import { IHttpMetricsService } from "@/shared/ports";
 import { Counter, Histogram, Registry } from "prom-client";
+import { IHttpMetricsService } from "@/shared/ports";
 
 export class HttpMetricsService implements IHttpMetricsService {
   private httpRequestsTotal: Counter;
@@ -34,7 +34,7 @@ export class HttpMetricsService implements IHttpMetricsService {
     route: string,
     statusCode: string
   ): void {
-    this.httpRequestsTotal.inc({ method, route, status_code: statusCode });
+    this.httpRequestsTotal.labels(method, route, statusCode).inc();
   }
 
   incrementHttpRequestErrorCount(
@@ -42,7 +42,7 @@ export class HttpMetricsService implements IHttpMetricsService {
     route: string,
     statusCode: string
   ): void {
-    this.httpRequestErrorsTotal.inc({ method, route, status_code: statusCode });
+    this.httpRequestErrorsTotal.labels(method, route, statusCode).inc();
   }
 
   recordHttpRequestDuration(
@@ -50,14 +50,13 @@ export class HttpMetricsService implements IHttpMetricsService {
     route: string,
     statusCode: string
   ): () => number {
-    const timer = this.httpRequestDuration.startTimer({
+    return this.httpRequestDuration.startTimer({
       method,
       route,
       status_code: statusCode,
     });
-    return timer;
   }
-}
+} 
 
 export class HttpMetricsServiceFactory {
   static create(registry: Registry): IHttpMetricsService {

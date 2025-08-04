@@ -1,7 +1,7 @@
-import { IMetricsService } from "@/shared/ports";
+import { IHttpMetricsService } from "@/shared/ports";
 import { Request, Response, NextFunction } from "express";
 
-export const createMetricsMiddleware = (metrics: IMetricsService) => {
+export const createMetricsMiddleware = (metrics: IHttpMetricsService) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const end = metrics.recordHttpRequestDuration(
       req.method,

@@ -1,21 +1,21 @@
 import {
   ConfirmationEmailParams,
+  IEmailMetricsService,
   IEmailService,
-  IMetricsService,
   WeatherUpdateEmailParams,
 } from "@/shared/ports";
 import { JOB_TYPES } from "@common/constants";
 import { ILogger } from "@logger/logger.interface";
 import sgMail from "@sendgrid/mail";
-import { getConfirmEmailTemplate, getWeatherUpdateTemplate } from "./templates";
 import { getCallSites } from "util";
+import { getConfirmEmailTemplate, getWeatherUpdateTemplate } from "./templates";
 
 export class SendgridEmailService implements IEmailService {
   constructor(
     apiKey: string,
     private readonly fromEmail: string,
     private readonly logger: ILogger,
-    private readonly metricsService: IMetricsService
+    private readonly metricsService: IEmailMetricsService
   ) {
     sgMail.setApiKey(apiKey);
     this.logger.info({

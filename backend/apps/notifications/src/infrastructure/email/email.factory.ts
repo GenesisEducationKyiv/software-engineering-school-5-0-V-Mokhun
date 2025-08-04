@@ -1,5 +1,5 @@
 import { ILogger } from "@logger/logger.interface";
-import { IEmailService, IMetricsService } from "@/shared/ports";
+import { IEmailMetricsService, IEmailService } from "@/shared/ports";
 import { SendgridEmailService } from "./sendgrid.email.service";
 import { getCallSites } from "util";
 
@@ -12,7 +12,7 @@ export function createEmailService({
   logger: ILogger;
   apiKey: string;
   fromEmail: string;
-  metricsService: IMetricsService;
+  metricsService: IEmailMetricsService;
 }): IEmailService {
   if (!apiKey || !fromEmail) {
     const errorMessage =

@@ -3,7 +3,7 @@ import { ILogger } from "@logger/logger.interface";
 import {
   IEmailService,
   IEmailLogRepository,
-  IMetricsService,
+  IJobMetricsService,
 } from "@/shared/ports";
 import { WorkerConfig } from "@common/infrastructure/queue/types";
 import { createWorker } from "@common/infrastructure/queue/job-worker.factory";
@@ -13,7 +13,7 @@ export type ConfirmEmailDependencies = {
   logger: ILogger;
   emailService: IEmailService;
   emailLogRepo: IEmailLogRepository;
-  metricsService: IMetricsService;
+  metricsService: IJobMetricsService;
 };
 
 export const createConfirmEmailWorker = (

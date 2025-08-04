@@ -1,8 +1,8 @@
-import { composeWorkers } from "./composition-root";
+import { env } from "@/config/env";
 import { getDb } from "@/db";
 import { createLogger } from "@logger/logger.factory";
-import { MetricsFactory } from "../metrics";
-import { env } from "@/config/env";
+import { EmailMetricsServiceFactory, JobMetricsServiceFactory, registryManager } from "../metrics";
+import { composeWorkers } from "./composition-root";
 
 const logger = createLogger({
   serviceName: "notifications",
@@ -10,6 +10,7 @@ const logger = createLogger({
   lokiHost: env.LOKI_HOST,
 });
 const db = getDb();
-const metricsService = MetricsFactory.create();
+const jobMetricsService = JobMetricsServiceFactory.create(registryManager.getRegistry());
+const emailMetricsService = EmailMetricsServiceFactory.create(registryManager.getRegistry());
 
-export const workers = composeWorkers(db, logger, metricsService);
+export const workers = composeWorkers(db, logger, jobMetricsService, emailMetricsService);
