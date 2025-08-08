@@ -1,32 +1,42 @@
-import { Job } from "bullmq";
-import { JobProcessor } from "@common/infrastructure/queue/types";
-import { SendWeatherUpdateEmailJobData } from "@common/generated/proto/job_pb";
 import {
-  IEmailService,
   IEmailLogRepository,
+  IEmailService,
+  IJobMetricsService
 } from "@/shared/ports";
+import { JOB_TYPES } from "@common/constants";
+import { SendWeatherUpdateEmailJobData } from "@common/generated/proto/job_pb";
+import { JobProcessor } from "@common/infrastructure/queue/types";
 import { ILogger } from "@logger/logger.interface";
+import { Job } from "bullmq";
+import { getCallSites } from "util";
 
 export class SendWeatherUpdateEmailProcessor implements JobProcessor {
   constructor(
     private readonly emailService: IEmailService,
     private readonly emailLogRepo: IEmailLogRepository,
     private readonly logger: ILogger,
+    private readonly metricsService: IJobMetricsService
   ) {}
 
   async handle(job: Job<Uint8Array>) {
+    this.metricsService.incrementJobEnqueuedCount(
+      JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL
+    );
+    const end = this.metricsService.recordJobProcessingDuration(
+      JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL
+    );
     const jobData = SendWeatherUpdateEmailJobData.fromBinary(job.data);
     const { email, city, unsubscribeUrl, weatherData, subscriptionId } =
       jobData;
 
-    if (
-      !email ||
-      !city ||
-      !unsubscribeUrl ||
-      !subscriptionId ||
-      !weatherData
-    ) {
-      this.logger.warn("Skipping job due to missing data", { jobId: job.id });
+    if (!email || !city || !unsubscribeUrl || !subscriptionId || !weatherData) {
+      this.logger.warn({
+        message: "Skipping job due to missing data",
+        callSites: getCallSites(),
+        meta: {
+          jobId: job.id,
+        },
+      });
       return;
     }
 
@@ -44,7 +54,14 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
         status: "sent",
         sentAt: new Date(),
       });
+
+      this.metricsService.incrementJobProcessedCount(
+        JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL
+      );
     } catch (error) {
+      this.metricsService.incrementJobFailedCount(
+        JOB_TYPES.SEND_WEATHER_UPDATE_EMAIL
+      );
       await this.emailLogRepo.create({
         subscriptionId,
         status: "failed",
@@ -54,14 +71,20 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
       });
 
       throw error;
+    } finally {
+      end();
     }
   }
 
   completed(job: Job<Uint8Array>) {
     const jobData = SendWeatherUpdateEmailJobData.fromBinary(job.data);
-    this.logger.info("Send weather update email job completed", {
-      jobId: job.id,
-      email: jobData.email,
+    this.logger.info({
+      message: "Send weather update email job completed",
+      callSites: getCallSites(),
+      meta: {
+        jobId: job.id,
+        email: jobData.email,
+      },
     });
   }
 
@@ -69,9 +92,18 @@ export class SendWeatherUpdateEmailProcessor implements JobProcessor {
     const jobData = job
       ? SendWeatherUpdateEmailJobData.fromBinary(job.data)
       : undefined;
-    this.logger.error("Send weather update email job failed", error, {
-      jobId: job?.id,
-      jobData,
+    this.logger.error({
+      message: "Send weather update email job failed",
+      callSites: getCallSites(),
+      meta: {
+        jobId: job?.id,
+        jobData,
+      },
+      error: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      },
     });
   }
 }

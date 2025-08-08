@@ -1,10 +1,12 @@
 import {
   IWeatherProvider,
+  IWeatherProviderMetricsService,
   WeatherData,
-  weatherDataSchema,
+  weatherDataSchema
 } from "@/shared/ports";
 import { HttpException, ServerErrorException } from "@common/shared";
 import { ILogger } from "@logger/logger.interface";
+import { getCallSites } from "util";
 import z from "zod";
 import { mapWeatherCodeToDescription } from "../mappers";
 
@@ -22,8 +24,10 @@ export type OpenMeteoGeocodingResponse = z.infer<
 >;
 
 export class OpenMeteoProvider implements IWeatherProvider {
+  private readonly providerName = "OpenMeteo";
   constructor(
     private readonly logger: ILogger,
+    private readonly metricsService: IWeatherProviderMetricsService,
     private readonly geocodingApiUrl: string = "https://geocoding-api.open-meteo.com/v1",
     private readonly weatherApiUrl: string = "https://api.open-meteo.com/v1"
   ) {}
@@ -48,8 +52,18 @@ export class OpenMeteoProvider implements IWeatherProvider {
     );
 
     if (!data.success) {
-      this.logger.error(`Failed to fetch coordinates for ${city}`, data.error, {
-        data,
+      this.logger.error({
+        message: `Failed to fetch coordinates for ${city}`,
+        callSites: getCallSites(),
+        meta: {
+          city,
+          provider: this.providerName,
+        },
+        error: {
+          message: data.error.message,
+          stack: data.error.stack,
+          name: data.error.name,
+        },
       });
       throw new ServerErrorException(`Failed to fetch coordinates for ${city}`);
     }
@@ -67,7 +81,14 @@ export class OpenMeteoProvider implements IWeatherProvider {
   }
 
   async getWeatherData(city: string): Promise<WeatherData> {
+    const end = this.metricsService.recordWeatherProviderRequestDuration(
+      this.providerName
+    );
+
     try {
+      this.metricsService.incrementWeatherProviderRequestCount(
+        this.providerName
+      );
       const { latitude, longitude } = await this.getCoordinates(city);
 
       const url = `${this.weatherApiUrl}/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code&forecast_days=1`;
@@ -93,11 +114,19 @@ export class OpenMeteoProvider implements IWeatherProvider {
       });
 
       if (!validated.success) {
-        this.logger.error(
-          "Invalid weather data received from OpenMeteo",
-          validated.error,
-          { data }
-        );
+        this.logger.error({
+          message: "Invalid weather data received from OpenMeteo",
+          callSites: getCallSites(),
+          meta: {
+            city,
+            provider: this.providerName,
+          },
+          error: {
+            message: validated.error.message,
+            stack: validated.error.stack,
+            name: validated.error.name,
+          },
+        });
         throw new ServerErrorException(
           "Invalid weather data received from API"
         );
@@ -105,18 +134,36 @@ export class OpenMeteoProvider implements IWeatherProvider {
 
       return validated.data;
     } catch (error) {
+      this.metricsService.incrementWeatherProviderRequestErrorCount(
+        this.providerName
+      );
+
       const err =
         error instanceof Error ? error : new Error(JSON.stringify(error));
+
+      this.logger.error({
+        message: `Error fetching weather data for ${city}`,
+        callSites: getCallSites(),
+        meta: {
+          city,
+          provider: this.providerName,
+        },
+        error: {
+          message: err.message,
+          stack: err.stack,
+          name: err.name,
+        },
+      });
 
       if (error instanceof HttpException) {
         throw error;
       }
 
-      this.logger.error(`Error fetching weather data for ${city}`, err);
-
       throw new ServerErrorException(
         "Failed to fetch weather data due to an unexpected error."
       );
+    } finally {
+      end();
     }
   }
 }

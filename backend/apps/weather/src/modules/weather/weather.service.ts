@@ -1,17 +1,16 @@
+import {
+  ICacheMetricsService, IWeatherProvider,
+  IWeatherRepository,
+  WeatherData
+} from "@/shared/ports";
 import { CACHE_THRESHOLD } from "@common/constants";
 import { IWeatherService } from "./weather.controller";
-import { IMetricsService } from "@/shared/ports";
-import {
-  IWeatherProvider,
-  IWeatherRepository,
-  WeatherData,
-} from "@/shared/ports";
 
 export class WeatherService implements IWeatherService {
   constructor(
     private readonly repo: IWeatherRepository,
     private readonly provider: IWeatherProvider,
-    private readonly metrics: IMetricsService,
+    private readonly metricsService: ICacheMetricsService,
     private readonly threshold: number = CACHE_THRESHOLD
   ) {}
 
@@ -20,7 +19,7 @@ export class WeatherService implements IWeatherService {
     const now = Date.now();
 
     if (cached && now - cached.fetchedAt.getTime() < this.threshold) {
-      this.metrics.incrementCacheHit("weather");
+      this.metricsService.incrementCacheHit("weather");
       return {
         temperature: cached.temperature,
         humidity: cached.humidity,
@@ -28,7 +27,7 @@ export class WeatherService implements IWeatherService {
       };
     }
 
-    this.metrics.incrementCacheMiss("weather");
+    this.metricsService.incrementCacheMiss("weather");
     const fresh = await this.provider.getWeatherData(city);
     await this.repo.upsert(city, fresh);
     return fresh;

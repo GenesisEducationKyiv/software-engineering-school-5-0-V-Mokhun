@@ -5,16 +5,33 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { env } from "@/config/env";
 import { getDb } from "@/db";
-import { MetricsFactory } from "./infrastructure/metrics";
-import { errorMiddleware } from "./middleware";
+import {
+  CacheMetricsServiceFactory,
+  HttpMetricsServiceFactory,
+  registryManager,
+  SubscriptionMetricsServiceFactory,
+  WeatherProviderMetricsServiceFactory,
+} from "./infrastructure/metrics";
+import { createMetricsMiddleware, errorMiddleware } from "./middleware";
 import {
   createSubscriptionController,
   createSubscriptionRouter,
   createWeatherController,
   createWeatherRouter,
 } from "@/modules";
-import { getLogger } from "@logger/logger.factory";
-import { FileLogger } from "@logger/file.logger";
+import { createLogger } from "@logger/logger.factory";
+import Redis from "ioredis";
+
+const redis = new Redis({
+  host: env.REDIS_HOST,
+  port: env.REDIS_PORT,
+});
+
+const logger = createLogger({
+  serviceName: "weather",
+  env: env.NODE_ENV,
+  lokiHost: env.LOKI_HOST,
+});
 
 export const app = express();
 
@@ -29,45 +46,67 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(
+  createMetricsMiddleware(
+    HttpMetricsServiceFactory.create(registryManager.getRegistry())
+  )
+);
 
 app.get("/health", async (_req, res) => {
   const db = getDb();
 
-  const [dbStatus] = await Promise.all([
+  const [dbStatus, redisStatus] = await Promise.all([
     db
       .$queryRawUnsafe("SELECT 1")
       .then(() => ({ status: "ok" }))
       .catch((e) => ({ status: "error", message: e.message })),
+    redis
+      .ping()
+      .then((res) =>
+        res === "PONG"
+          ? { status: "ok" }
+          : { status: "error", message: "Redis connection failed" }
+      )
+      .catch((e) => ({ status: "error", message: e.message })),
   ]);
 
-  const isHealthy = dbStatus.status === "ok";
+  const isHealthy = dbStatus.status === "ok" && redisStatus.status === "ok";
 
   res.status(isHealthy ? 200 : 503).json({
     status: isHealthy ? "ok" : "error",
     uptime: process.uptime(),
     timestamp: Date.now(),
-    checks: [{ name: "database", ...dbStatus }],
+    checks: [
+      { name: "database", ...dbStatus },
+      { name: "redis", ...redisStatus },
+    ],
   });
 });
 
-const metricsService = MetricsFactory.create();
 app.get("/metrics", async (_req, res) => {
-  res.set("Content-Type", metricsService.getContentType());
-  res.end(await metricsService.getMetrics());
+  res.set("Content-Type", registryManager.getContentType());
+  res.end(await registryManager.getMetrics());
 });
 
 const weatherController = createWeatherController({
   db: getDb(),
-  logger: new FileLogger(env.LOG_LEVEL, env.LOG_FILE_PATH),
-  providersLogger: getLogger(),
+  logger,
   apiKey: env.WEATHER_API_KEY,
-  metrics: metricsService,
+  cacheMetricsService: CacheMetricsServiceFactory.create(
+    registryManager.getRegistry()
+  ),
+  weatherProviderMetricsService: WeatherProviderMetricsServiceFactory.create(
+    registryManager.getRegistry()
+  ),
 });
 const weatherRouter = createWeatherRouter(weatherController);
 
 const subscriptionController = createSubscriptionController({
-  logger: getLogger(),
+  logger,
   db: getDb(),
+  metricsService: SubscriptionMetricsServiceFactory.create(
+    registryManager.getRegistry()
+  ),
 });
 const subscriptionRouter = createSubscriptionRouter(subscriptionController);
 

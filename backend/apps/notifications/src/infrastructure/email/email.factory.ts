@@ -1,24 +1,35 @@
 import { ILogger } from "@logger/logger.interface";
-import { IEmailService } from "@/shared/ports";
+import { IEmailMetricsService, IEmailService } from "@/shared/ports";
 import { SendgridEmailService } from "./sendgrid.email.service";
+import { getCallSites } from "util";
 
 export function createEmailService({
   logger,
   apiKey,
   fromEmail,
+  metricsService,
 }: {
   logger: ILogger;
   apiKey: string;
   fromEmail: string;
+  metricsService: IEmailMetricsService;
 }): IEmailService {
   if (!apiKey || !fromEmail) {
-    logger.error(
-      "Email service cannot be created. apiKey or fromEmail is not set.",
-      new Error("Missing EmailService configuration")
-    );
+    const errorMessage =
+      "Email service cannot be created. apiKey or fromEmail is not set.";
+    const error = new Error(errorMessage);
+    logger.error({
+      message: errorMessage,
+      callSites: getCallSites(),
+      error: {
+        message: errorMessage,
+        stack: error.stack,
+        name: error.name,
+      },
+    });
 
-    throw new Error("Cannot create EmailService due to missing configuration.");
+    throw error;
   }
 
-  return new SendgridEmailService(logger, apiKey, fromEmail);
+  return new SendgridEmailService(apiKey, fromEmail, logger, metricsService);
 }

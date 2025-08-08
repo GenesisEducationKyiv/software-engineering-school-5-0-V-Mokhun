@@ -1,30 +1,36 @@
 import { createWeatherProvider } from "@/infrastructure/weather/weather.factory";
 import { ILogger } from "@logger/logger.interface";
-import { IDatabase } from "@/shared/ports";
+import {
+  ICacheMetricsService,
+  IDatabase,
+  IWeatherProviderMetricsService,
+} from "@/shared/ports";
 import { WeatherRepository } from "@/infrastructure/repositories/weather.repository";
 import { WeatherController } from "./weather.controller";
 import { WeatherService } from "./weather.service";
-import { IMetricsService } from "@/shared/ports";
 
 export function createWeatherController({
   db,
   logger,
   providersLogger,
   apiKey,
-  metrics,
+  cacheMetricsService,
+  weatherProviderMetricsService,
 }: {
   db: IDatabase;
   logger: ILogger;
   providersLogger?: ILogger;
   apiKey: string;
-  metrics: IMetricsService;
+  cacheMetricsService: ICacheMetricsService;
+  weatherProviderMetricsService: IWeatherProviderMetricsService;
 }): WeatherController {
   const repo = new WeatherRepository(db);
   const provider = createWeatherProvider({
     logger,
     providersLogger,
     weatherApiKey: apiKey,
+    metricsService: weatherProviderMetricsService,
   });
-  const service = new WeatherService(repo, provider, metrics);
+  const service = new WeatherService(repo, provider, cacheMetricsService);
   return new WeatherController(service);
 }
